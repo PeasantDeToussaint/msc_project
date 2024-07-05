@@ -3,12 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import {Toaster} from "@/components/ui/toaster";
-import {useToast} from "@/components/ui/use-toast";
-import { Toast } from '@radix-ui/react-toast';
+import { Toaster } from "@/components/ui/toaster";
+import { useToast } from "@/components/ui/use-toast";
 
-export default function LoginPage() {
-  const {toast} = useToast();
+export default function LoginPage({ setIsAuthenticated }) {
+  const { toast } = useToast();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
@@ -33,17 +32,18 @@ export default function LoginPage() {
         const data = await response.json();
         console.log('Login successful:', data);
         localStorage.setItem('token', data.jwtToken);
+        setIsAuthenticated(true); // Update authentication state
         toast({
           description: "You're logged in! Navigating to home page.",
         });
         setTimeout(() => {
-          navigate("./Homepage"); // Redirect to homepage
+          navigate("/Homepage"); // Redirect to homepage
         }, 2000); // Redirect the user to the homepage
       } else {
-        console.error('Registration failed');
-       toast({
-         description: "Oops. Login failed for some reason.",
-        });;
+        console.error('Login failed');
+        toast({
+          description: "Oops. Login failed for some reason.",
+        });
       }
     } catch (error) {
       console.error('An error occurred:', error);

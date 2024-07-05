@@ -4,11 +4,16 @@ dotenv.config();
 
 const authorize = (req, res, next) => {
   // Get token from header
-  const token = req.header("jwt_token");
+
+  console.log('Received token:', token);
+  
+  const token = req.header('jwt_token');
+
+  console.log('Received token:', token);
 
   // Check if not token
   if (!token) {
-    return res.status(403).json({ msg: "authorization denied" });
+    return res.status(403).json({ msg: 'authorization denied' });
   }
 
   // Verify token

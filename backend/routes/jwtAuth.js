@@ -4,7 +4,9 @@ import bcrypt from "bcrypt";
 import pool from "../db.js";
 import validInfo from "../middleware/validInfo.js";
 import jwtGenerator from "../utils/jwtGenerator.js";
-import authorize from "../middleware/authorize.js";
+import jwt from 'jsonwebtoken';
+import dotenv from "dotenv";
+dotenv.config();
 
 // Authentication
 
@@ -65,13 +67,22 @@ router.post("/login", validInfo, async (req, res) => {
   }
 });
 
-router.post("/verify", authorize, (req, res) => {
-  try {
-    res.json(true);
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).send("Server error");
+router.post("/verify", (req, res) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ error: 'No token provided' });
   }
+
+  const token = authHeader.split(' ')[1];
+
+  jwt.verify(token, process.env.JWT_SECRET_KEY, (err, decoded) => {
+    if (err) {
+      console.error('Token verification failed:', err.message);
+      return res.status(403).json({ error: 'Token is not valid' });
+    }
+    console.log('Decoded token:', decoded); // Log the decoded payload
+    res.json({ valid: true });
+  });
 });
 
 export default router;
