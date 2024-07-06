@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -6,11 +6,22 @@ import { Button } from "@/components/ui/button";
 import { Toaster } from "@/components/ui/toaster";
 import { useToast } from "@/components/ui/use-toast";
 
-export default function LoginPage({ setIsAuthenticated }) {
+export default function LoginPage({ isAuthenticated, setIsAuthenticated }) {
   const { toast } = useToast();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      toast({
+        description: "You are already logged in! Redirecting to home page.",
+      });
+      setTimeout(() => {
+        navigate("/Homepage"); // Redirect to homepage after 2 seconds
+      }, 2000);
+    }
+  }, [isAuthenticated, navigate, toast]);
 
   const handleRegister = (e) => {
     e.preventDefault();
