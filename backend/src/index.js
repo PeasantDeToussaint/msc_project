@@ -1,8 +1,8 @@
 import express from 'express';
 import cors from 'cors';
 import bodyParser from 'body-parser';
-import jwtAuth from '../routes/jwtAuth.js'; // Adjust the path as necessary
-import dashboardRouter from '../routes/dashboard.js'; // Assuming default export
+import speakingQuestions from '../routes/speakingQuestions.js';
+import jwtAuth from '../routes/jwtAuth.js'; // Adjust the path as necessary // Assuming default export
 
 // Initialize express app
 const app = express();
@@ -20,9 +20,8 @@ app.get('/', (req, res) =>
 })
 // Use routes
 app.use("/authentication", jwtAuth);
+app.use("/speakingQuestions", speakingQuestions);
 
-// Home route
-app.use("/dashboard", dashboardRouter);
 
 // Start the server
 app.listen(PORT, () => {
