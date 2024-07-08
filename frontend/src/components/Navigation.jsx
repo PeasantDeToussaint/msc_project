@@ -96,18 +96,12 @@ export default function Navigation({ isAuthenticated, setIsAuthenticated }) {
                     <ChevronDownIcon className="h-4 w-4 ml-2" />
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="start" onCloseAutoFocus={handleDropdownClose}>
-                    <DropdownMenuItem as={Link} to="/reading-practice" onSelect={handleDropdownClose}>
-                      Reading
-                    </DropdownMenuItem>
-                    <DropdownMenuItem as={Link} to="/writing-practice" onSelect={handleDropdownClose}>
-                      Writing
-                    </DropdownMenuItem>
-                    <DropdownMenuItem as={Link} to="/listening-practice" onSelect={handleDropdownClose}>
-                      Listening
-                    </DropdownMenuItem>
-                    <DropdownMenuItem as={Link} to="/speaking-practice" onSelect={handleDropdownClose}>
-                      Speaking
-                    </DropdownMenuItem>
+                      <DropdownMenuItem onSelect={handleDropdownClose}>
+                        <Link to="/writing-practice">Writing</Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onSelect={handleDropdownClose}>
+                        <Link to="/SpeakingPracticeIntro">Speaking</Link>
+                      </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               </NavigationMenuItem>

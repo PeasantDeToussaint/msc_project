@@ -1,27 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
 import { Progress } from "@/components/ui/progress";
 
-const SpeakingPractice = () => {
+const RandomQuestions = () => {
   const [questions, setQuestions] = useState({ part1: [], part2: [], part3: [] });
-  const location = useLocation();
-  const selectedTopics = location.state?.selectedTopics || { part1: [], part2: [], part3: [] };
 
   useEffect(() => {
     const fetchQuestions = async () => {
       try {
-        const response = await fetch('/speakingQuestions/random-questions', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(selectedTopics)
-        });
-
+        const response = await fetch('/speakingQuestions/random-questions');
         if (!response.ok) {
           throw new Error(`HTTP error! Status: ${response.status}`);
         }
-
         const data = await response.json();
         setQuestions(data);
       } catch (error) {
@@ -29,10 +18,8 @@ const SpeakingPractice = () => {
       }
     };
 
-    if (selectedTopics.part1.length > 0 && selectedTopics.part2.length > 0 && selectedTopics.part3.length > 0) {
-      fetchQuestions();
-    }
-  }, [selectedTopics]);
+    fetchQuestions();
+  }, []);
 
   const renderQuestions = (questions, part) => {
     if (!questions[part] || questions[part].length === 0) {
@@ -65,7 +52,6 @@ const SpeakingPractice = () => {
   return (
     <div className="container mx-auto px-4 py-12 md:px-6 lg:px-8">
       <div className="max-w-3xl mx-auto">
-        <h1 className="text-xl font-bold mb-6">IELTS Speaking Exam</h1>
         <div className="space-y-6">
           <div>
             <h2 className="text-lg font-bold mb-4">Part 1</h2>
@@ -91,4 +77,4 @@ const SpeakingPractice = () => {
   );
 };
 
-export default SpeakingPractice;
+export default RandomQuestions;

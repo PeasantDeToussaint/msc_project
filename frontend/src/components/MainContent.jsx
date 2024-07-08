@@ -9,6 +9,8 @@ import Homepage from '../components/Homepage';
 import RegisterPage from '../components/RegisterPage';
 import ContactPage from '../components/ContactPage';
 import LoginPage from '../components/LoginPage';
+import SpeakingPracticeIntro from '../components/SpeakingPracticeIntro';
+import SpeakingPracticeRandom from '../components/SpeakingPracticeRandom';
 import Navigation from '../components/Navigation'; // Import the navigation component
 
 function MainContent({ isAuthenticated, setIsAuthenticated }) {
@@ -30,6 +32,8 @@ function MainContent({ isAuthenticated, setIsAuthenticated }) {
           <Route path="/writing-practice" element={isAuthenticated ? <WritingPractice /> : <Navigate replace to="/LoginPage" />} />
           <Route path="/about" element={isAuthenticated ? <About /> : <Navigate replace to="/LoginPage" />} />
           <Route path="/contact" element={isAuthenticated ? <ContactPage /> : <Navigate replace to="/LoginPage" />} />
+          <Route path="/SpeakingPracticeIntro" element={isAuthenticated ? <SpeakingPracticeIntro /> : <Navigate replace to="/LoginPage" />} />
+          <Route path="/SpeakingPracticeRandom" element={isAuthenticated ? <SpeakingPracticeRandom /> : <Navigate replace to="/LoginPage" />} />
         </Routes>
       </div>
     </div>
