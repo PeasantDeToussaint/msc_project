@@ -28,7 +28,7 @@ function MainContent({ isAuthenticated, setIsAuthenticated }) {
           <Route path="/" element={isAuthenticated ? <Homepage /> : <Navigate replace to="/LoginPage" />} />
           <Route path="/reading-practice" element={isAuthenticated ? <ReadingPractice /> : <Navigate replace to="/LoginPage" />} />
           <Route path="/listening-practice" element={isAuthenticated ? <ListeningPractice /> : <Navigate replace to="/LoginPage" />} />
-          <Route path="/speaking-practice" element={isAuthenticated ? <SpeakingPractice /> : <Navigate replace to="/LoginPage" />} />
+          <Route path="/SpeakingPractice" element={isAuthenticated ? <SpeakingPractice /> : <Navigate replace to="/LoginPage" />} />
           <Route path="/writing-practice" element={isAuthenticated ? <WritingPractice /> : <Navigate replace to="/LoginPage" />} />
           <Route path="/about" element={isAuthenticated ? <About /> : <Navigate replace to="/LoginPage" />} />
           <Route path="/contact" element={isAuthenticated ? <ContactPage /> : <Navigate replace to="/LoginPage" />} />
