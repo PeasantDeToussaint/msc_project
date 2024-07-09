@@ -21,6 +21,7 @@ app.get('/', (req, res) =>
 // Use routes
 app.use("/authentication", jwtAuth);
 app.use("/speakingQuestions", speakingQuestions);
+app.use("/audio", processAudio); 
 
 
 // Start the server
