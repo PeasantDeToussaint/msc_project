@@ -5,7 +5,7 @@ import fs from 'fs';
 import util from 'util';
 
 // Set the environment variable for Google Cloud credentials
-process.env.GOOGLE_APPLICATION_CREDENTIALS = "/Users/yuanlin/msc_project/project-yasiman-7750592292e4.json";
+process.env.GOOGLE_APPLICATION_CREDENTIALS = "/Users/yuanlin/project-yasiman-7750592292e4.json";
 
 const upload = multer({ dest: 'uploads/' });
 const speechClient = new SpeechClient();
