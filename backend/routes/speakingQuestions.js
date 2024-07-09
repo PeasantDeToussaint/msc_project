@@ -15,18 +15,36 @@ router.get('/random-questions', async (req, res) => {
   }
 });
 
+
+
 router.post('/selected-questions', async (req, res) => {
     const { part1, part2, part3 } = req.body;
   
     try {
-      const selectedPart1 = await pool.query('SELECT * FROM speaking_prompts WHERE part_id = 1 AND topic = ANY($1)', [part1]);
-      const selectedPart2 = await pool.query('SELECT * FROM speaking_prompts WHERE part_id = 2 AND topic = ANY($1)', [part2]);
-      const selectedPart3 = await pool.query('SELECT * FROM speaking_prompts WHERE part_id = 3 AND topic = ANY($1)', [part3]);
+      console.log('Received request body:', req.body);
+      
+      const selectedPart1 = await pool.query(
+        'SELECT * FROM speaking_prompts WHERE part_id = 1 AND genre = ANY($1::text[])',
+        [part1]
+      );
+      console.log('Part 1 query result:', selectedPart1.rows);
+      
+      const selectedPart2 = await pool.query(
+        'SELECT * FROM speaking_prompts WHERE part_id = 2 AND genre = ANY($1::text[])',
+        [part2]
+      );
+      console.log('Part 2 query result:', selectedPart2.rows);
+      
+      const selectedPart3 = await pool.query(
+        'SELECT * FROM speaking_prompts WHERE part_id = 3 AND genre = ANY($1::text[])',
+        [part3]
+      );
+      console.log('Part 3 query result:', selectedPart3.rows);
+  
       res.json({ part1: selectedPart1.rows, part2: selectedPart2.rows, part3: selectedPart3.rows });
     } catch (err) {
-      console.error(err.message);
-      res.status(500).send('Server error');
+      console.error('Error executing query:', err.message);
+      res.status(500).json({ error: 'Server error', message: err.message });
     }
   });
-  
   export default router;

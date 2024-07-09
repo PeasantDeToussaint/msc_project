@@ -46,29 +46,27 @@ export default function TopicSelection() {
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  const handleCheckboxChange = (part, topic) => {
+  const handleCheckboxChange = (part, topic, checked) => {
     setSelectedTopics((prev) => {
       const newSelected = { ...prev };
-      if (newSelected[part].includes(topic)) {
-        newSelected[part] = newSelected[part].filter((t) => t !== topic);
-      } else {
+      if (checked) {
         newSelected[part].push(topic);
+      } else {
+        newSelected[part] = newSelected[part].filter((t) => t !== topic);
       }
-      console.log(`Updated ${part} topics:`, newSelected[part]);
       return newSelected;
     });
   };
 
   const handleStartPractice = () => {
-    console.log("Selected Topics: ", selectedTopics);
-    if (selectedTopics.part1.length < 3 || selectedTopics.part2.length < 3 || selectedTopics.part3.length < 3) {
+    if (selectedTopics.part1.length < 1 || selectedTopics.part2.length < 1 || selectedTopics.part3.length < 1) {
       toast({
         title: "Selection Error",
-        description: "You must choose at least three topics from each section.",
+        description: "You must choose at least one topics from each section.",
         status: "error"
       });
     } else {
-      navigate('/speaking-practice', {
+      navigate('/SpeakingPractice', {
         state: { selectedTopics }
       });
     }
@@ -81,24 +79,23 @@ export default function TopicSelection() {
   return (
     <div className="w-full max-w-3xl mx-auto py-12 px-4 md:px-6">
       <Toaster />
+      <div className="text-center">
+        <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">IELTS Speaking Practice</h1>
+
+      </div>
       <div className="space-y-6">
-        <div className="text-center">
-          <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">IELTS Speaking Exam Practice</h1>
-          <p className="mt-4 text-muted-foreground">
-            Prepare for your IELTS Speaking Exam with our interactive practice session.
-          </p>
-        </div>
         <div className="space-y-4">
-          <h2 className="text-xl font-bold">About the IELTS Speaking Exam</h2>
           <p className="text-muted-foreground">
-            The IELTS Speaking Exam is a 11-14 minute face-to-face interview with a certified examiner. It is divided
-            into three parts:
+            The IELTS Speaking Exam is a 11-14 minute face-to-face interview with a certified examiner. It is divided into three parts:
           </p>
           <ul className="list-disc pl-6 space-y-2">
             <li>Part 1: Introduction and interview (4-5 minutes)</li>
             <li>Part 2: Cue Card/Candidate Task Card (3-4 minutes)</li>
             <li>Part 3: Discussion (4-5 minutes)</li>
           </ul>
+          <p className="text-muted-foreground mt-4">
+            The Speaking test assesses whether candidates can communicate effectively in English. The assessment takes into account Fluency and Coherence, Lexical Resource, Grammatical Range and Accuracy, and Pronunciation.
+          </p>
         </div>
         <div className="space-y-4">
           <div className="flex justify-center space-x-4">
@@ -116,7 +113,7 @@ export default function TopicSelection() {
                     <Checkbox
                       id={`${part}-${index}`}
                       checked={selectedTopics[part].includes(topic)}
-                      onChange={() => handleCheckboxChange(part, topic)}
+                      onCheckedChange={(checked) => handleCheckboxChange(part, topic, checked)}
                     />
                     <Label htmlFor={`${part}-${index}`}>{topic}</Label>
                   </div>
@@ -127,7 +124,6 @@ export default function TopicSelection() {
         </div>
         <div className="flex justify-center space-x-4">
           <Button className="w-full sm:w-auto" onClick={handleStartPractice}>Start Practice</Button>
-          <Button className="w-full sm:w-auto" onClick={handleRandomTopics}>Select Random Topics</Button>
         </div>
       </div>
     </div>
