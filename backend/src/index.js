@@ -3,7 +3,7 @@ import cors from 'cors';
 import bodyParser from 'body-parser';
 import speakingQuestions from '../routes/speakingQuestions.js';
 import jwtAuth from '../routes/jwtAuth.js'; // Adjust the path as necessary // Assuming default export
-
+import processAudio from '../routes/processAudio.js';
 // Initialize express app
 const app = express();
 const PORT = process.env.PORT || 3000;
