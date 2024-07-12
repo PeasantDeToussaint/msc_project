@@ -97,7 +97,7 @@ export default function Navigation({ isAuthenticated, setIsAuthenticated }) {
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="start" onCloseAutoFocus={handleDropdownClose}>
                       <DropdownMenuItem onSelect={handleDropdownClose}>
-                        <Link to="/writing-practice">Writing</Link>
+                        <Link to="/WritingPracticeIntro">Writing</Link>
                       </DropdownMenuItem>
                       <DropdownMenuItem onSelect={handleDropdownClose}>
                         <Link to="/SpeakingPracticeIntro">Speaking</Link>

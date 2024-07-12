@@ -3,7 +3,7 @@ import { Route, Routes, Navigate, useLocation } from 'react-router-dom';
 import ReadingPractice from "../components/ReadingPractice";
 import ListeningPractice from '../components/ListeningPractice';
 import SpeakingPractice from '../components/SpeakingPractice';
-import WritingPractice from '../components/WritingPractice';
+import WritingPractice from './WritingPracticeTask1Intro';
 import About from '../components/About';
 import Homepage from '../components/Homepage';
 import RegisterPage from '../components/RegisterPage';
@@ -11,7 +11,11 @@ import ContactPage from '../components/ContactPage';
 import LoginPage from '../components/LoginPage';
 import SpeakingPracticeIntro from '../components/SpeakingPracticeIntro';
 import SpeakingPracticeRandom from '../components/SpeakingPracticeRandom';
-import Navigation from '../components/Navigation'; // Import the navigation component
+import Navigation from '../components/Navigation'; 
+import WritingPracticeIntro from '../components/WritingPracticeIntro';
+import WritingPracticeTask2Intro from '../components/WritingPracticeTask2Intro';
+import WritingPracticeTask1Intro from '../components/WritingPracticeTask1Intro';
+import WritingPracticeTask2 from '../components/WritingPracticeTask2Practice';
 
 function MainContent({ isAuthenticated, setIsAuthenticated }) {
   const location = useLocation();
@@ -34,6 +38,10 @@ function MainContent({ isAuthenticated, setIsAuthenticated }) {
           <Route path="/contact" element={isAuthenticated ? <ContactPage /> : <Navigate replace to="/LoginPage" />} />
           <Route path="/SpeakingPracticeIntro" element={isAuthenticated ? <SpeakingPracticeIntro /> : <Navigate replace to="/LoginPage" />} />
           <Route path="/SpeakingPracticeRandom" element={isAuthenticated ? <SpeakingPracticeRandom /> : <Navigate replace to="/LoginPage" />} />
+          <Route path="/WritingPracticeIntro" element={isAuthenticated ? <WritingPracticeIntro /> : <Navigate replace to="/LoginPage"/>} />
+          <Route path="/WritingPracticeTask1Intro" element={isAuthenticated ? <WritingPracticeTask1Intro/> : <Navigate replace to="/LoginPage"/>}/>
+          <Route path="/WritingPracticeTask2Intro" element={isAuthenticated ? <WritingPracticeTask2Intro/> : <Navigate replace to="/LoginPage"/>}/>
+          <Route path="/WritingPracticeTask2" element={isAuthenticated ? <WritingPracticeTask2/> : <Navigate replace to="/LoginPage"/>}/>
         </Routes>
       </div>
     </div>

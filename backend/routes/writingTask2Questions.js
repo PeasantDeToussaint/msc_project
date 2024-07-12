@@ -1,9 +1,10 @@
-
+// routes/writingTask2Questions.js
 import express from 'express';
 import pool from '../db.js';
 
 const router = express.Router();
 
+// Fetch an absolutely random writing prompt
 router.get('/random-question', async (req, res) => {
   try {
     const prompt = await pool.query('SELECT * FROM writing_task2_prompts ORDER BY RANDOM() LIMIT 1');
@@ -17,13 +18,13 @@ router.get('/random-question', async (req, res) => {
   }
 });
 
-
+// Fetch a random writing prompt from selected categories
 router.post('/selected-question', async (req, res) => {
   const { categories } = req.body;
 
   try {
     const selectedPrompt = await pool.query(
-      'SELECT * FROM writing_task2_prompts WHERE category = ANY($1::text[]) ORDER BY RANDOM() LIMIT 1',
+      'SELECT * FROM writing_task2_prompts WHERE category ILIKE ANY($1::text[]) ORDER BY RANDOM() LIMIT 1',
       [categories]
     );
     if (selectedPrompt.rows.length === 0) {
