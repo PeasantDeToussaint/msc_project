@@ -2,9 +2,11 @@ import express from 'express';
 import cors from 'cors';
 import bodyParser from 'body-parser';
 import speakingQuestions from '../routes/speakingQuestions.js';
-import jwtAuth from '../routes/jwtAuth.js'; // Adjust the path as necessary // Assuming default export
+import jwtAuth from '../routes/jwtAuth.js'; 
 import processAudio from '../routes/processAudio.js';
-// Initialize express app
+import writingTask2Questions from '../routes/writingTask2Questions.js';
+
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -22,6 +24,7 @@ app.get('/', (req, res) =>
 app.use("/authentication", jwtAuth);
 app.use("/speakingQuestions", speakingQuestions);
 app.use("/audio", processAudio); 
+app.use("/writingTask2Questions", writingTask2Questions);
 
 
 // Start the server
