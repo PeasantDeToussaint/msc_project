@@ -9,6 +9,9 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  optimizeDeps: {
+    include: ['@ffmpeg/ffmpeg'],
+  },
   server: {
     proxy: {
       '/speakingQuestions': {

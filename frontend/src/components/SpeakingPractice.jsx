@@ -6,6 +6,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 import encoderSingleton from '../lib/encoderSingleton';
 import mediaRecorderSingleton from '../lib/mediaRecorderSingleton';
+import { convertWebmToWav } from '../lib/audioConverter';
 
 const SpeakingPractice = () => {
   const [questions, setQuestions] = useState({ part1: [], part2: [], part3: [] });
@@ -57,22 +58,13 @@ const SpeakingPractice = () => {
   }, [selectedTopics, toast]);
 
   useEffect(() => {
-    if (timeLeft === 0) {
-      clearInterval(timerRef.current);
-      setIsRecording(false);
-      setCompletedRecordings((prev) => [...prev, recording?.id]);
-      setRecording(null);
-      toast({
-        title: "Recording Completed",
-        description: "Your recording is complete.",
-        status: "success"
-      });
+    if (timeLeft === 0 && isRecording) {
+      handleStopRecording();
     }
-  }, [timeLeft, recording, toast]);
+  }, [timeLeft]);
 
   useEffect(() => {
-    // Ensure the encoder is registered
-    encoderSingleton;
+    encoderSingleton; // Ensure the encoder is registered
   }, []);
 
   const selectOneQuestionPerGenre = (data) => {
@@ -101,6 +93,12 @@ const SpeakingPractice = () => {
           echoCancellation: true,
         }
       });
+
+      console.log('Captured Stream:', stream);
+      if (!stream) {
+        throw new Error('No stream available');
+      }
+
       setAudioBlobs([]);
       setCapturedStream(stream);
 
@@ -108,14 +106,25 @@ const SpeakingPractice = () => {
         mimeType: 'audio/webm' // Use a supported MIME type
       });
 
+      console.log('MediaRecorder initialized:', recorder);
+
       recorder.addEventListener('dataavailable', event => {
+        console.log('Data available event:', event.data);
         setAudioBlobs(prevBlobs => [...prevBlobs, event.data]);
       });
 
-      recorder.start();
+      recorder.start(1000); // Add a timeslice to generate dataavailable events every second
       mediaRecorderSingleton.setMediaRecorder(recorder);
+
+      // Add a delay to ensure the recorder has started
+      await new Promise(resolve => setTimeout(resolve, 1000));
     } catch (error) {
       console.error('Error starting recording:', error);
+      toast({
+        title: 'Error',
+        description: `Failed to start recording: ${error.message}`,
+        status: 'error'
+      });
     }
   };
 
@@ -127,17 +136,29 @@ const SpeakingPractice = () => {
         return;
       }
 
-      mediaRecorder.addEventListener('stop', () => {
+      mediaRecorder.addEventListener('stop', async () => {
         const mimeType = mediaRecorder.mimeType;
         const audioBlob = new Blob(audioBlobs, { type: mimeType });
         console.log("MIME type of recorded audio:", mimeType);
+        console.log("Audio Blob size:", audioBlob.size);
 
         if (capturedStream) {
           capturedStream.getTracks().forEach(track => track.stop());
         }
 
         mediaRecorderSingleton.clearMediaRecorder();
-        resolve(audioBlob);
+
+        // Convert audioBlob to WAV format
+        try {
+          console.log('Starting conversion to WAV');
+          const wavBlob = await convertWebmToWav(audioBlob);
+          console.log("WAV Blob size:", wavBlob.size);
+          console.log('Conversion to WAV completed');
+          resolve(wavBlob);
+        } catch (error) {
+          console.error("Error converting audio:", error);
+          resolve(null);
+        }
       });
 
       mediaRecorder.stop();
@@ -175,19 +196,37 @@ const SpeakingPractice = () => {
   };
 
   const handleStopRecording = async () => {
-    const audioBlob = await stopRecording();
     clearInterval(timerRef.current);
     setIsRecording(false);
     setIsPaused(false);
     setCompletedRecordings((prev) => [...prev, recording?.id]);
+  
+    console.log("Stopping recording...");
+    const audioBlob = await stopRecording();
+    console.log("Recording stopped. Audio Blob:", audioBlob);
+  
     if (audioBlob) {
       setRecordedBlobs((prev) => ({ ...prev, [recording?.id]: { blobUrl: URL.createObjectURL(audioBlob), blob: audioBlob } }));
     }
     setRecording(null);
   
-    // Send audio to the server for transcription
+    if (!audioBlob || audioBlob.size === 0) {
+      console.error("Invalid audio blob:", audioBlob);
+      toast({
+        title: 'Error',
+        description: "Failed to process audio: Invalid audio blob",
+        status: 'error'
+      });
+      return;
+    }
+  
     const formData = new FormData();
-    formData.append('audio', audioBlob);
+    formData.append('audio', audioBlob, 'audio.wav');
+    
+    console.log("Sending audio to server...");
+    for (let pair of formData.entries()) {
+      console.log(pair[0]+ ', ' + pair[1]);
+    }
   
     try {
       const response = await fetch('http://localhost:3000/audio/process-audio', {
@@ -197,6 +236,7 @@ const SpeakingPractice = () => {
   
       if (response.ok) {
         const data = await response.json();
+        console.log("Server response:", data);
         setRecordedTexts((prev) => ({ ...prev, [recording?.id]: data.transcription }));
         toast({
           title: "Transcription Completed",
@@ -207,6 +247,7 @@ const SpeakingPractice = () => {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
     } catch (error) {
+      console.error("Error sending audio to server:", error);
       toast({
         title: 'Error',
         description: `Failed to process audio: ${error.message}`,

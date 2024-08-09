@@ -5,8 +5,10 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Toaster } from "@/components/ui/toaster";
 import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from '../context/authContext';
 
-export default function LoginPage({ isAuthenticated, setIsAuthenticated }) {
+export default function LoginPage() {
+  const { login, isAuthenticated } = useAuth();
   const { toast } = useToast();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -14,14 +16,9 @@ export default function LoginPage({ isAuthenticated, setIsAuthenticated }) {
 
   useEffect(() => {
     if (isAuthenticated) {
-      toast({
-        description: "You are already logged in! Redirecting to home page.",
-      });
-      setTimeout(() => {
-        navigate("/Homepage"); // Redirect to homepage after 2 seconds
-      }, 2000);
+      navigate("/Homepage"); // Redirect to homepage if already authenticated
     }
-  }, [isAuthenticated, navigate, toast]);
+  }, [isAuthenticated, navigate]);
 
   const handleRegister = (e) => {
     e.preventDefault();
@@ -41,23 +38,19 @@ export default function LoginPage({ isAuthenticated, setIsAuthenticated }) {
 
       if (response.ok) {
         const data = await response.json();
-        console.log('Login successful:', data);
-        localStorage.setItem('token', data.jwtToken);
-        setIsAuthenticated(true); // Update authentication state
         toast({
-          description: "You're logged in! Navigating to home page.",
+          description: "You're logged in! Redirecting to home page in 2 seconds...",
         });
         setTimeout(() => {
-          navigate("/Homepage"); // Redirect to homepage
-        }, 2000); // Redirect the user to the homepage
+          login(data.jwtToken); // Use login function from useAuth
+          navigate("/Homepage"); // Navigate to homepage after 2 seconds
+        }, 2000); // 2000 milliseconds = 2 seconds
       } else {
-        console.error('Login failed');
         toast({
           description: "Oops. Login failed for some reason.",
         });
       }
     } catch (error) {
-      console.error('An error occurred:', error);
       toast({
         description: "An error occurred during login.",
       });

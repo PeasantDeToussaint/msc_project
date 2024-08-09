@@ -52,6 +52,9 @@ router.post('/process-audio', upload.single('audio'), async (req, res) => {
       .map(result => result.alternatives[0].transcript)
       .join('\n');
 
+    // Log the transcribed text to the console
+    console.log("Transcribed text:", transcription);
+
     res.json({ transcription });
   } catch (error) {
     console.error('Error processing audio:', error);

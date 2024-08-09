@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { Toaster } from "@/components/ui/toaster";
 import { 
   NavigationMenu, 
   NavigationMenuList, 
-  NavigationMenuItem, 
-  NavigationMenuLink 
+  NavigationMenuItem 
 } from './ui/navigation-menu';
 import { 
   DropdownMenu, 
@@ -14,25 +14,19 @@ import {
   DropdownMenuSeparator 
 } from './ui/dropdown-menu';
 import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
-
-function BookIcon(props) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20" />
-    </svg>
-  );
-}
+import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { useToast } from '@/components/ui/use-toast';
+import { useAuth } from '../context/authContext';
 
 function ChevronDownIcon(props) {
   return (
@@ -53,8 +47,12 @@ function ChevronDownIcon(props) {
   );
 }
 
-export default function Navigation({ isAuthenticated, setIsAuthenticated }) {
+export default function Navigation() {
+  const { user, logout } = useAuth();
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [showPasswordPrompt, setShowPasswordPrompt] = useState(false);
+  const [password, setPassword] = useState('');
+  const { toast } = useToast();
   const navigate = useNavigate();
 
   const handleDropdownToggle = () => {
@@ -66,20 +64,48 @@ export default function Navigation({ isAuthenticated, setIsAuthenticated }) {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    setIsAuthenticated(false);
-    navigate("/LoginPage");
+    logout();
+    toast({
+      title: 'Signed out',
+      description: 'You have successfully signed out.',
+    });
   };
+
+  const handlePasswordSubmit = async () => {
+    const response = await fetch('http://localhost:3000/admin/validate-admin-password', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ password }),
+    });
+  
+    if (response.ok) {
+      toast({
+        title: 'Access granted',
+        description: 'You have successfully logged in as admin.',
+      });
+      navigate('/ManageTestbank');
+    } else {
+      toast({
+        title: 'Invalid password',
+        description: 'Please try again.',
+      });
+    }
+    setShowPasswordPrompt(false);
+  };
+  
+  
 
   return (
     <header className="flex h-16 w-full items-center bg-white px-4 md:px-6">
       <div className="flex items-center gap-2">
         <Link to="/" className="flex items-center gap-2">
-       
           <span className="text-lg font-bold">Yasiman IELTS Prep</span>
         </Link>
         <nav className="flex lg:flex ml-4">
           <NavigationMenu>
+            <Toaster />
             <NavigationMenuList className="flex items-center">
               <NavigationMenuItem>
                 <Link
@@ -95,13 +121,18 @@ export default function Navigation({ isAuthenticated, setIsAuthenticated }) {
                     Practice
                     <ChevronDownIcon className="h-4 w-4 ml-2" />
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="start" onCloseAutoFocus={handleDropdownClose}>
-                      <DropdownMenuItem onSelect={handleDropdownClose}>
-                        <Link to="/WritingPracticeIntro">Writing</Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onSelect={handleDropdownClose}>
-                        <Link to="/SpeakingPracticeIntro">Speaking</Link>
-                      </DropdownMenuItem>
+                  <DropdownMenuContent
+                    align="start"
+                    onCloseAutoFocus={handleDropdownClose}
+                    className="bg-white border border-gray-300 rounded-md shadow-lg"
+                  >
+                    <DropdownMenuItem onSelect={handleDropdownClose} className="hover:bg-gray-100 cursor-pointer">
+                      <Link to="/WritingPracticeIntro">Writing</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator></DropdownMenuSeparator>
+                    <DropdownMenuItem onSelect={handleDropdownClose} className="hover:bg-gray-100 cursor-pointer">
+                      <Link to="/SpeakingPracticeIntro">Speaking</Link>
+                    </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               </NavigationMenuItem>
@@ -136,29 +167,89 @@ export default function Navigation({ isAuthenticated, setIsAuthenticated }) {
       <div className="ml-auto">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Avatar className="h-9 w-9">
-              <AvatarImage src="/placeholder-user.jpg" />
-              <AvatarFallback>LY</AvatarFallback>
-              <span className="sr-only">Toggle user menu</span>
-            </Avatar>
+            <div className="cursor-pointer">
+              <Avatar className="h-9 w-9">
+                <AvatarImage src={user?.avatarUrl || '/placeholder-user.jpg'} />
+                <AvatarFallback>{user?.initials}</AvatarFallback>
+                <span className="sr-only">Toggle user menu</span>
+              </Avatar>
+            </div>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" onCloseAutoFocus={handleDropdownClose}>
-            <DropdownMenuItem as={Link} to="/profile" onSelect={handleDropdownClose}>
-              <div className="flex items-center gap-2">
-                <div className="h-4 w-4" />
-                <span>Profile</span>
+          <DropdownMenuContent
+            align="end"
+            onCloseAutoFocus={handleDropdownClose}
+            className="bg-white border border-gray-300 rounded-md shadow-lg p-4"
+          >
+            <div className="flex items-center gap-2 mb-4">
+              <Avatar className="h-16 w-16">
+                <AvatarImage src={user?.avatarUrl || '/placeholder-user.jpg'} />
+                <AvatarFallback>{user?.initials}</AvatarFallback>
+              </Avatar>
+              <div>
+                <h4 className="text-lg font-bold">{user?.name}</h4>
+                <span className="text-sm text-gray-500">{user?.status}</span>
               </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              <DropdownMenuItem as={Link} to="/my-lists" className="hover:bg-gray-100 flex flex-col items-center cursor-pointer">
+                <span className="text-center">My Practice Schedule</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem as={Link} to="/notebook" className="hover:bg-gray-100 flex flex-col items-center cursor-pointer">
+                <span className="text-center">Vocabulary Statistics</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem as={Link} to="/submissions" className="hover:bg-gray-100 flex flex-col items-center cursor-pointer">
+                <span className="text-center">Submissions</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem as={Link} to="/progress" className="hover:bg-gray-100 flex flex-col items-center cursor-pointer">
+                <span className="text-center">Progress</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem as={Link} to="/points" className="hover:bg-gray-100 flex flex-col items-center cursor-pointer">
+                <span className="text-center">Points</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => setShowPasswordPrompt(true)} className="hover:bg-gray-100 flex flex-col items-center cursor-pointer">
+                <span className="text-center">Manage Testbank(Admin)</span>
+              </DropdownMenuItem>
+            </div>
+            <DropdownMenuSeparator></DropdownMenuSeparator>
+            <DropdownMenuItem as={Link} to="/orders" className="hover:bg-gray-100 flex items-center cursor-pointer">
+              <span className="ml-2">Orders</span>
             </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onSelect={handleLogout}>
-              <div className="flex items-center gap-2">
-                <div className="h-4 w-4" />
-                <span>Logout</span>
-              </div>
+            <DropdownMenuItem onSelect={handleLogout} className="hover:bg-gray-100 flex items-center cursor-pointer">
+              <span className="ml-2">Sign out</span>
             </DropdownMenuItem>
+
           </DropdownMenuContent>
+
         </DropdownMenu>
       </div>
+      <Dialog open={showPasswordPrompt} onOpenChange={setShowPasswordPrompt}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Enter Admin Password</DialogTitle>
+            <DialogDescription>
+              Please enter the admin password to manage the database.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="password" className="text-right">
+                Password
+              </Label>
+              <Input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="col-span-3"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowPasswordPrompt(false)}>Cancel</Button>
+            <Button onClick={handlePasswordSubmit}>Submit</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </header>
   );
 }

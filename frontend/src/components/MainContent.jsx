@@ -16,17 +16,20 @@ import WritingPracticeIntro from '../components/WritingPracticeIntro';
 import WritingPracticeTask2Intro from '../components/WritingPracticeTask2Intro';
 import WritingPracticeTask1Intro from '../components/WritingPracticeTask1Intro';
 import WritingPracticeTask2 from '../components/WritingPracticeTask2Practice';
+import ManageTestbank from '../components/ManageTestbank';
+import { useAuth } from '../context/authContext';
 
-function MainContent({ isAuthenticated, setIsAuthenticated }) {
+function MainContent() {
+  const { isAuthenticated } = useAuth();
   const location = useLocation();
   const showNavigation = !['/LoginPage', '/RegisterPage'].includes(location.pathname);
 
   return (
     <div className="flex flex-col h-screen">
-      {showNavigation && <Navigation isAuthenticated={isAuthenticated} setIsAuthenticated={setIsAuthenticated} />} {/* Conditionally render the navigation */}
+      {showNavigation && <Navigation />} {/* Conditionally render the navigation */}
       <div className="flex-grow p-4 overflow-auto h-screen">
         <Routes>
-          <Route path="/LoginPage" element={<LoginPage isAuthenticated={isAuthenticated} setIsAuthenticated={setIsAuthenticated} />} />
+          <Route path="/LoginPage" element={isAuthenticated ? <Navigate replace to="/Homepage" /> : <LoginPage />} />
           <Route path="/Homepage" element={isAuthenticated ? <Homepage /> : <Navigate replace to="/LoginPage" />} />
           <Route path="/RegisterPage" element={<RegisterPage />} />
           <Route path="/" element={isAuthenticated ? <Homepage /> : <Navigate replace to="/LoginPage" />} />
@@ -42,6 +45,7 @@ function MainContent({ isAuthenticated, setIsAuthenticated }) {
           <Route path="/WritingPracticeTask1Intro" element={isAuthenticated ? <WritingPracticeTask1Intro/> : <Navigate replace to="/LoginPage"/>}/>
           <Route path="/WritingPracticeTask2Intro" element={isAuthenticated ? <WritingPracticeTask2Intro/> : <Navigate replace to="/LoginPage"/>}/>
           <Route path="/WritingPracticeTask2" element={isAuthenticated ? <WritingPracticeTask2/> : <Navigate replace to="/LoginPage"/>}/>
+          <Route path="/ManageTestbank" element={isAuthenticated ? <ManageTestbank/> : <Navigate replace to="/LoginPage"/>}/>
         </Routes>
       </div>
     </div>
