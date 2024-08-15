@@ -13,11 +13,15 @@ import SpeakingPracticeIntro from '../components/SpeakingPracticeIntro';
 import SpeakingPracticeRandom from '../components/SpeakingPracticeRandom';
 import Navigation from '../components/Navigation'; 
 import WritingPracticeIntro from '../components/WritingPracticeIntro';
+import WritingPracticeTask1 from '../components/WritingPracticeTask1';
 import WritingPracticeTask2Intro from '../components/WritingPracticeTask2Intro';
 import WritingPracticeTask1Intro from '../components/WritingPracticeTask1Intro';
 import WritingPracticeTask2 from '../components/WritingPracticeTask2Practice';
+import WritingPracticeTask2Feedback from '../components/WritingPracticeTask2Feedback';
 import ManageTestbank from '../components/ManageTestbank';
+import WritingPracticeTask1Feedback from '../components/WritingPracticeTask1Feedback';
 import { useAuth } from '../context/authContext';
+
 
 function MainContent() {
   const { isAuthenticated } = useAuth();
@@ -45,6 +49,9 @@ function MainContent() {
           <Route path="/WritingPracticeTask1Intro" element={isAuthenticated ? <WritingPracticeTask1Intro/> : <Navigate replace to="/LoginPage"/>}/>
           <Route path="/WritingPracticeTask2Intro" element={isAuthenticated ? <WritingPracticeTask2Intro/> : <Navigate replace to="/LoginPage"/>}/>
           <Route path="/WritingPracticeTask2" element={isAuthenticated ? <WritingPracticeTask2/> : <Navigate replace to="/LoginPage"/>}/>
+          <Route path="/WritingPracticeTask1" element={isAuthenticated ? <WritingPracticeTask1/> : <Navigate replace to="/LoginPage"/>}/>
+          <Route path="/WritingPracticeTask2Feedback" element={isAuthenticated ? <WritingPracticeTask2Feedback/> : <Navigate replace to="/LoginPage"/>}/>
+          <Route path="/WritingPracticeTask1Feedback" element={isAuthenticated ? <WritingPracticeTask1Feedback/> : <Navigate replace to="/LoginPage"/>}/>
           <Route path="/ManageTestbank" element={isAuthenticated ? <ManageTestbank/> : <Navigate replace to="/LoginPage"/>}/>
         </Routes>
       </div>

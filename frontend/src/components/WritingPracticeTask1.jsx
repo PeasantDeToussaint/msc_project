@@ -1,11 +1,27 @@
 import React, { useState, useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { useNavigate } from "react-router-dom";
 
-export default function Component() {
-  const [timeRemaining, setTimeRemaining] = useState(1200); // 20 minutes in seconds
+export default function WritingPracticeTask1() {
+  const location = useLocation();
   const navigate = useNavigate();
+  const prompt = location.state?.prompt;
+
+  if (!prompt) {
+    navigate("/IELTSTask1Practice");
+    return null;
+  }
+
+  const formatTime = (seconds) => {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes.toString().padStart(2, "0")}:${remainingSeconds.toString().padStart(2, "0")}`;
+  };
+
+  const [timeRemaining, setTimeRemaining] = useState(1200); // 20 minutes in seconds
+  const [response, setResponse] = useState("");
+  const [wordCount, setWordCount] = useState(0);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -15,14 +31,24 @@ export default function Component() {
     return () => clearInterval(timer);
   }, []);
 
-  const formatTime = (seconds) => {
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
-    return `${minutes.toString().padStart(2, "0")}:${remainingSeconds.toString().padStart(2, "0")}`;
+  const handleWordCount = (event) => {
+    const text = event.target.value;
+    setResponse(text);
+    setWordCount(text.split(/\s+/).filter((word) => word.length > 0).length);
+  };
+
+  const handleSubmit = () => {
+    navigate("/WritingPracticeTask1Feedback", {
+      state: {
+        prompt: prompt.question,
+        response: response,
+        image_url: prompt.image_url,
+      },
+    });
   };
 
   const handleBackToIntro = () => {
-    navigate('/WritingPracticeTask1Intro.jsx'); 
+    navigate("/WritingPracticeTask1Intro");
   };
 
   return (
@@ -36,20 +62,19 @@ export default function Component() {
           </div>
         </div>
         <div className="grid grid-cols-1 gap-6">
-          <img
-            src="/placeholder.svg"
-            width="800"
-            height="450"
-            alt="IELTS Task 1 Graph"
-            className="w-full h-auto object-cover rounded-lg"
-            style={{ aspectRatio: "800/450", objectFit: "cover" }}
-          />
+          {prompt.image_url ? (
+            <img
+              src={`http://localhost:3000/uploads/${prompt.image_url}`}
+              alt="Prompt"
+              className="w-full h-auto object-contain rounded-lg"
+              style={{ aspectRatio: "800/450" }}
+            />
+          ) : (
+            <p>No images available for this prompt.</p>
+          )}
           <div className="bg-card rounded-lg p-4 shadow-lg">
-            <h2 className="text-lg font-bold mb-3">Question Prompt</h2>
-            <p className="text-muted-foreground">
-              The graph below shows the number of visitors to a national park over a 12-month period. Summarize the
-              information by selecting and reporting the main features, and make comparisons where relevant.
-            </p>
+            <h2 className="text-lg font-bold mb-3">Your task:</h2>
+            <p className="text-muted-foreground">{prompt.question}</p>
           </div>
         </div>
         <div className="mt-6 bg-card rounded-lg p-4 shadow-lg">
@@ -62,20 +87,18 @@ export default function Component() {
             rows={12}
             placeholder="Type your response here..."
             className="w-full bg-background border-input rounded-md p-3 focus:outline-none focus:ring-1 focus:ring-primary"
+            onChange={handleWordCount}
           />
           <div className="mt-2 text-muted-foreground text-xs">
-            Word Count: <span id="word-count">0</span>
+            Word Count: <span id="word-count">{wordCount}</span>
           </div>
-          <div className="mt-4 flex justify-between">
-            <Button type="button" variant="destructive">
-              Quit
-            </Button>
-            <Button type="submit">Submit</Button>
+          <div className="mt-4 flex justify-end">
+            <Button type="button" onClick={handleSubmit}>Submit</Button>
           </div>
         </div>
         <div className="mt-4 flex justify-center">
           <Button onClick={handleBackToIntro} variant="secondary">
-            Back to Intro
+            Return to Previous Page
           </Button>
         </div>
       </div>

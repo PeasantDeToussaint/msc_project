@@ -1,9 +1,19 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import { Separator } from "@/components/ui/separator";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+
+const chartTypes = [
+  { value: "line", label: "Line Graph" },
+  { value: "bar", label: "Bar Chart" },
+  { value: "pie", label: "Pie Chart" },
+  { value: "table", label: "Table" },
+  { value: "process", label: "Process Diagram" },
+  { value: "map", label: "Map" },
+  { value: "mixed", label: "Mixed Chart" },
+];
 
 const IELTSTask1Practice = () => {
   const [selectedTopic, setSelectedTopic] = useState(null);
@@ -15,35 +25,40 @@ const IELTSTask1Practice = () => {
 
   const handleStartPractice = async () => {
     try {
-      const response = await fetch(`http://localhost:3000/writingTask1Questions/selected-question`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ categories: [selectedTopic] }),
-      });
+      const response = await fetch(
+        `http://localhost:3000/writingTask1Questions/selected-question`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ categories: [selectedTopic] }),
+        }
+      );
       const data = await response.json();
       if (response.ok) {
         navigate(`/WritingPracticeTask1`, { state: { prompt: data } });
       } else {
-        console.error('Error fetching prompt:', data.error);
+        console.error("Error fetching prompt:", data.error);
       }
     } catch (error) {
-      console.error('Error fetching prompt:', error);
+      console.error("Error fetching prompt:", error);
     }
   };
 
   const handleRandomPractice = async () => {
     try {
-      const response = await fetch(`http://localhost:3000/writingTask1Questions/random-question`);
+      const response = await fetch(
+        `http://localhost:3000/writingTask1Questions/random-question`
+      );
       const data = await response.json();
       if (response.ok) {
         navigate(`/WritingPracticeTask1`, { state: { prompt: data } });
       } else {
-        console.error('Error fetching prompt:', data.error);
+        console.error("Error fetching prompt:", data.error);
       }
     } catch (error) {
-      console.error('Error fetching random prompt:', error);
+      console.error("Error fetching random prompt:", error);
     }
   };
 
@@ -53,8 +68,9 @@ const IELTSTask1Practice = () => {
         <div className="space-y-4">
           <h1 className="text-3xl font-bold">Task 1 Writing Practice</h1>
           <p className="text-muted-foreground">
-            In this practice session, you will be presented with a variety of IELTS Task 1 writing prompts. Select a
-            topic category, then click "Start Practice" to begin writing your response.
+            In this practice session, you will be presented with a variety of
+            IELTS Task 1 writing prompts. Select a topic category, then click
+            "Start Practice" to begin writing your response.
           </p>
         </div>
         <Separator className="my-8" />
@@ -62,20 +78,10 @@ const IELTSTask1Practice = () => {
           <h2 className="text-xl font-bold">Select a Topic Category</h2>
           <RadioGroup value={selectedTopic} onValueChange={handleTopicChange}>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-              {[
-                "Line Graph",
-                "Bar Chart",
-                "Pie Chart",
-                "Table",
-                "Process Diagram",
-                "Map",
-                "Mixed Chart",
-              ].map((topic) => (
-                <div key={topic} className="flex items-center space-x-2">
-                  <RadioGroupItem id={topic} value={topic} />
-                  <Label htmlFor={topic}>
-                    {topic}
-                  </Label>
+              {chartTypes.map((topic) => (
+                <div key={topic.value} className="flex items-center space-x-2">
+                  <RadioGroupItem id={topic.value} value={topic.value} />
+                  <Label htmlFor={topic.value}>{topic.label}</Label>
                 </div>
               ))}
             </div>
@@ -84,7 +90,9 @@ const IELTSTask1Practice = () => {
         <div className="flex justify-center mt-8 space-x-4">
           <Button
             onClick={handleStartPractice}
-            className={`inline-flex h-10 items-center justify-center rounded-md bg-primary px-8 text-sm font-medium text-primary-foreground shadow transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring ${selectedTopic ? '' : 'pointer-events-none opacity-50'}`}
+            className={`inline-flex h-10 items-center justify-center rounded-md bg-primary px-8 text-sm font-medium text-primary-foreground shadow transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring ${
+              selectedTopic ? "" : "pointer-events-none opacity-50"
+            }`}
           >
             Start Practice
           </Button>

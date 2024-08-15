@@ -1,89 +1,129 @@
-import React from "react";
-import { Button, Card, CardContent, CardHeader, CardTitle, CardDescription } from "@shadcn/ui";
+import React, { useState, useEffect, useRef } from 'react';
+import { useLocation, Link } from 'react-router-dom';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-export default function Component() {
-    const [feedback, setFeedback] = useState(null);
+export default function Feedback() {
+  const location = useLocation();
+  const { prompt, response } = location.state || {};
 
-    useEffect(() =>
-    {
-        fetch('/essay/processEssay')
-    })
+  const [feedback, setFeedback] = useState({
+    overallScore: 'N/A',
+    sections: [
+      { title: 'Task Response', score: 'N/A', text: 'No feedback available' },
+      { title: 'Coherence and Cohesion', score: 'N/A', text: 'No feedback available' },
+      { title: 'Lexical Resource', score: 'N/A', text: 'No feedback available' },
+      { title: 'Grammatical Range and Accuracy', score: 'N/A', text: 'No feedback available' },
+    ],
+  });
+
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const hasFetchedFeedback = useRef(false);
+
+  useEffect(() => {
+    if (prompt && response && !hasFetchedFeedback.current) {
+      setLoading(true);
+      hasFetchedFeedback.current = true; // Ensure we only fetch feedback once
+      fetch('http://localhost:3000/essay/processEssay', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ prompt, response }),
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          const parsedFeedback = parseFeedback(data);
+          setFeedback(parsedFeedback);
+          setLoading(false);
+        })
+        .catch((err) => {
+          console.error('Error fetching feedback:', err);
+          setError('Failed to fetch feedback. Please try again later.');
+          setLoading(false);
+        });
+    }
+  }, [prompt, response]);
+
+  const parseFeedback = (data) => {
+    return {
+      overallScore: data.overallScore || 'N/A',
+      sections: [
+        {
+          title: 'Task Response',
+          score: data.taskResponse?.score || 'N/A',
+          text: data.taskResponse?.text || 'No feedback available',
+        },
+        {
+          title: 'Coherence and Cohesion',
+          score: data.coherence?.score || 'N/A',
+          text: data.coherence?.text || 'No feedback available',
+        },
+        {
+          title: 'Lexical Resource',
+          score: data.lexical?.score || 'N/A',
+          text: data.lexical?.text || 'No feedback available',
+        },
+        {
+          title: 'Grammatical Range and Accuracy',
+          score: data.grammar?.score || 'N/A',
+          text: data.grammar?.text || 'No feedback available',
+        },
+      ],
+    };
+  };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-primary"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return <div className="container mx-auto max-w-4xl py-12">{error}</div>;
+  }
+
   return (
-    <div className="flex min-h-[100vh] flex-col items-center justify-center bg-background text-foreground">
-      <div className="container max-w-3xl px-4 py-12 md:px-6 lg:px-8">
-        <div className="grid gap-8">
-          <Card>
+    <div className="container mx-auto max-w-4xl py-12">
+      <Card className="mb-8">
+        <CardHeader>
+          <CardTitle className="text-xl font-bold">Feedback on your essay:</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-2">
+            <div className="text-xs font-medium text-muted-foreground">Overall Score</div>
+            <div className="text-2xl font-bold">{feedback.overallScore}</div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <div className="space-y-6">
+        {feedback.sections.map((section, index) => (
+          <Card className="w-full" key={index}>
             <CardHeader>
-              <CardTitle className="text-3xl font-bold">IELTS Essay Feedback</CardTitle>
-              <CardDescription className="text-sm text-muted-foreground">
-                Detailed feedback on your IELTS essay performance.
-              </CardDescription>
+              <CardTitle className="text-base font-bold">{section.title}</CardTitle>
             </CardHeader>
-            <CardContent className="grid gap-4">
-              <div className="grid gap-2">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-xl font-bold">Task Achievement</h2>
-                  <div className="rounded-full bg-muted px-4 py-2 text-xl font-bold">7.5</div>
+            <CardContent>
+              <div className="grid grid-cols-2 gap-4">
+                <p className="text-muted-foreground">{section.text}</p>
+                <div className="text-right">
+                  <div className="text-xl font-bold">{section.score}</div>
                 </div>
-                <p className="text-sm text-muted-foreground">
-                  Your essay effectively addresses the task, with a clear position that is well-supported throughout.
-                  You demonstrate a good understanding of the prompt and provide relevant and well-developed ideas to
-                  support your argument. Your essay meets the requirements of the task and shows a strong command of the
-                  topic.
-                </p>
-              </div>
-              <div className="grid gap-2">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-xl font-bold">Coherence and Cohesion</h2>
-                  <div className="rounded-full bg-muted px-4 py-2 text-xl font-bold">6.5</div>
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  Your essay is generally well-organized, with a clear introduction, body, and conclusion. You use a
-                  range of cohesive devices, such as transition words and phrases, to connect your ideas and guide the
-                  reader through your argument. However, there are a few instances where the flow of your essay could be
-                  improved, and your use of cohesive devices could be more varied.
-                </p>
-              </div>
-              <div className="grid gap-2">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-xl font-bold">Lexical Resource</h2>
-                  <div className="rounded-full bg-muted px-4 py-2 text-xl font-bold">7.0</div>
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  Your essay demonstrates a good range of vocabulary, with appropriate word choice and a variety of
-                  lexical items. You use some less common words and phrases effectively, and your vocabulary is
-                  generally accurate and precise. However, there are a few instances where your word choice could be
-                  more appropriate or where you could use a more varied vocabulary to express your ideas.
-                </p>
-              </div>
-              <div className="grid gap-2">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-xl font-bold">Grammatical Range and Accuracy</h2>
-                  <div className="rounded-full bg-muted px-4 py-2 text-xl font-bold">6.5</div>
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  Your essay demonstrates a good range of grammatical structures, with a variety of sentence types and
-                  complex constructions. Your grammar is generally accurate, with only a few minor errors that do not
-                  significantly impact the overall meaning of your essay. However, there are a few instances where your
-                  grammar could be more accurate or where you could use a more varied range of grammatical structures to
-                  express your ideas.
-                </p>
-              </div>
-              <div className="flex items-center justify-between">
-                <h2 className="text-xl font-bold">Overall Score</h2>
-                <div className="rounded-full bg-muted px-4 py-2 text-xl font-bold">7.0</div>
               </div>
             </CardContent>
           </Card>
-          <div className="flex justify-center gap-4">
-            <Button variant="primary" className="h-10 px-8 text-sm font-medium shadow">
-              Re-attempt
-            </Button>
-            <Button variant="outline" className="h-10 px-8 text-sm font-medium shadow-sm">
-              Return
-            </Button>
-          </div>
-        </div>
+        ))}
+      </div>
+
+      <div className="flex justify-center mt-8">
+        <Link
+          to="/WritingPracticeTask2Intro"
+          className="inline-flex h-10 items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
+        >
+          Return
+        </Link>
       </div>
     </div>
   );

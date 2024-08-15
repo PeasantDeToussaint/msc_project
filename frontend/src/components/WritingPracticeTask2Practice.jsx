@@ -13,11 +13,19 @@ const WritingPracticeTask2 = () => {
   const [category, setCategory] = useState('');
   const [timeLimit, setTimeLimit] = useState(0);
   const [isTimeUp, setIsTimeUp] = useState(false);
-  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false); // Prevent double submission
   const location = useLocation();
   const promptData = location.state?.prompt;
   const { toast } = useToast();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (promptData) {
+      setPrompt(promptData.question);
+      setCategory(promptData.category);
+      setTimeLimit(promptData.time_limit);
+    }
+  }, [promptData]);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -36,14 +44,6 @@ const WritingPracticeTask2 = () => {
     return () => clearInterval(interval);
   }, [timeLimit, toast]);
 
-  useEffect(() => {
-    if (promptData) {
-      setPrompt(promptData.question);
-      setCategory(promptData.category);
-      setTimeLimit(promptData.time_limit);
-    }
-  }, [promptData]);
-
   const handleResponseChange = (event) => {
     const text = event.target.value;
     setResponse(text);
@@ -52,17 +52,18 @@ const WritingPracticeTask2 = () => {
 
   const handleSubmit = (event) => {
     event.preventDefault();
-    // Handle form submission logic
-    console.log("Response submitted:", response);
-    setIsSubmitted(true);
-    toast({
-      description: "Response submitted!",
-    });
-  };
 
-  const handleViewResult = () => {
-    // Navigate to the results page
-    navigate('/results');
+    if (isSubmitted) return; // Prevent double submission
+    setIsSubmitted(true); // Set the submission flag to true
+
+    toast({ description: "Response submitted!" });
+
+    navigate('/WritingPracticeTask2Feedback', {
+      state: {
+        prompt: prompt,
+        response: response,
+      },
+    });
   };
 
   const formatTime = (seconds) => {
@@ -97,7 +98,7 @@ const WritingPracticeTask2 = () => {
               onChange={handleResponseChange}
               placeholder="Start writing your response here..."
               className="w-full h-[400px] text-sm p-4 rounded-md border border-input focus:border-primary focus:ring-1 focus:ring-primary"
-              disabled={isTimeUp || isSubmitted}
+              disabled={isTimeUp || isSubmitted} // Disable textarea if time is up or already submitted
             />
             <div className="absolute top-4 right-4 flex items-center gap-2 text-sm text-muted-foreground">
               <ClockIcon className="w-4 h-4" />
@@ -108,11 +109,7 @@ const WritingPracticeTask2 = () => {
             <div className="text-sm text-muted-foreground">
               <span id="word-count">{wordCount}</span> words
             </div>
-            {isSubmitted ? (
-              <Button onClick={handleViewResult}>View Result</Button>
-            ) : (
-              <Button type="submit" disabled={isTimeUp}>Submit</Button>
-            )}
+            <Button type="submit" disabled={isTimeUp || isSubmitted}>Submit</Button>
           </div>
         </form>
       </div>
@@ -138,26 +135,6 @@ function ClockIcon(props) {
     >
       <circle cx="12" cy="12" r="10" />
       <polyline points="12 6 12 12 16 14" />
-    </svg>
-  );
-}
-
-function XIcon(props) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M18 6 6 18" />
-      <path d="m6 6 12 12" />
     </svg>
   );
 }

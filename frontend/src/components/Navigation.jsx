@@ -95,8 +95,6 @@ export default function Navigation() {
     setShowPasswordPrompt(false);
   };
   
-  
-
   return (
     <header className="flex h-16 w-full items-center bg-white px-4 md:px-6">
       <div className="flex items-center gap-2">
@@ -110,26 +108,26 @@ export default function Navigation() {
               <NavigationMenuItem>
                 <Link
                   to="/about"
-                  className="group inline-flex h-full items-center px-4 text-sm font-medium transition-colors hover:bg-muted hover:text-muted-foreground focus:bg-muted focus:text-muted-foreground focus:outline-none cursor-pointer disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-muted/50 data-[state=open]:bg-muted/50"
+                  className="group inline-flex h-full items-center px-4 text-sm font-medium transition-colors hover:bg-muted hover:text-muted-foreground focus:bg-muted focus:text-muted-foreground focus:outline-none cursor-pointer disabled:pointer-events-none disabled:opacity-50"
                 >
                   About IELTS
                 </Link>
               </NavigationMenuItem>
               <NavigationMenuItem>
                 <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
-                  <DropdownMenuTrigger className="group inline-flex h-full items-center px-4 text-sm font-medium transition-colors hover:bg-muted hover:text-muted-foreground focus:bg-muted focus:text-muted-foreground focus:outline-none cursor-pointer disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-muted/50 data-[state=open]:bg-muted/50">
+                  <DropdownMenuTrigger className="group inline-flex h-full items-center px-4 text-sm font-medium transition-colors hover:bg-muted hover:text-muted-foreground focus:bg-muted focus:text-muted-foreground focus:outline-none cursor-pointer disabled:pointer-events-none disabled:opacity-50">
                     Practice
                     <ChevronDownIcon className="h-4 w-4 ml-2" />
                   </DropdownMenuTrigger>
                   <DropdownMenuContent
                     align="start"
                     onCloseAutoFocus={handleDropdownClose}
-                    className="bg-white border border-gray-300 rounded-md shadow-lg"
+                    className="bg-white border border-gray-300 rounded-md shadow-lg p-2 min-w-[160px] lg:min-w-[200px] transition-transform transform origin-top duration-200"
                   >
                     <DropdownMenuItem onSelect={handleDropdownClose} className="hover:bg-gray-100 cursor-pointer">
                       <Link to="/WritingPracticeIntro">Writing</Link>
                     </DropdownMenuItem>
-                    <DropdownMenuSeparator></DropdownMenuSeparator>
+                    <DropdownMenuSeparator />
                     <DropdownMenuItem onSelect={handleDropdownClose} className="hover:bg-gray-100 cursor-pointer">
                       <Link to="/SpeakingPracticeIntro">Speaking</Link>
                     </DropdownMenuItem>
@@ -139,7 +137,7 @@ export default function Navigation() {
               <NavigationMenuItem>
                 <Link
                   to="/full-length-tests"
-                  className="group inline-flex h-full items-center px-4 text-sm font-medium transition-colors hover:bg-muted hover:text-muted-foreground focus:bg-muted focus:text-muted-foreground focus:outline-none cursor-pointer disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-muted/50 data-[state=open]:bg-muted/50"
+                  className="group inline-flex h-full items-center px-4 text-sm font-medium transition-colors hover:bg-muted hover:text-muted-foreground focus:bg-muted focus:text-muted-foreground focus:outline-none cursor-pointer disabled:pointer-events-none disabled:opacity-50"
                 >
                   Full-length Tests
                 </Link>
@@ -147,7 +145,7 @@ export default function Navigation() {
               <NavigationMenuItem>
                 <Link
                   to="/resources"
-                  className="group inline-flex h-full items-center px-4 text-sm font-medium transition-colors hover:bg-muted hover:text-muted-foreground focus:bg-muted focus:text-muted-foreground focus:outline-none cursor-pointer disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-muted/50 data-[state=open]:bg-muted/50"
+                  className="group inline-flex h-full items-center px-4 text-sm font-medium transition-colors hover:bg-muted hover:text-muted-foreground focus:bg-muted focus:text-muted-foreground focus:outline-none cursor-pointer disabled:pointer-events-none disabled:opacity-50"
                 >
                   Resources
                 </Link>
@@ -155,7 +153,7 @@ export default function Navigation() {
               <NavigationMenuItem>
                 <Link
                   to="/contact"
-                  className="group inline-flex h-full items-center px-4 text-sm font-medium transition-colors hover:bg-muted hover:text-muted-foreground focus:bg-muted focus:text-muted-foreground focus:outline-none cursor-pointer disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-muted/50 data-[state=open]:bg-muted/50"
+                  className="group inline-flex h-full items-center px-4 text-sm font-medium transition-colors hover:bg-muted hover:text-muted-foreground focus:bg-muted focus:text-muted-foreground focus:outline-none cursor-pointer disabled:pointer-events-none disabled:opacity-50"
                 >
                   Contact
                 </Link>
@@ -178,7 +176,7 @@ export default function Navigation() {
           <DropdownMenuContent
             align="end"
             onCloseAutoFocus={handleDropdownClose}
-            className="bg-white border border-gray-300 rounded-md shadow-lg p-4"
+            className="bg-white border border-gray-300 rounded-md shadow-lg p-4 min-w-[200px]"
           >
             <div className="flex items-center gap-2 mb-4">
               <Avatar className="h-16 w-16">
@@ -210,16 +208,14 @@ export default function Navigation() {
                 <span className="text-center">Manage Testbank(Admin)</span>
               </DropdownMenuItem>
             </div>
-            <DropdownMenuSeparator></DropdownMenuSeparator>
+            <DropdownMenuSeparator />
             <DropdownMenuItem as={Link} to="/orders" className="hover:bg-gray-100 flex items-center cursor-pointer">
               <span className="ml-2">Orders</span>
             </DropdownMenuItem>
             <DropdownMenuItem onSelect={handleLogout} className="hover:bg-gray-100 flex items-center cursor-pointer">
               <span className="ml-2">Sign out</span>
             </DropdownMenuItem>
-
           </DropdownMenuContent>
-
         </DropdownMenu>
       </div>
       <Dialog open={showPasswordPrompt} onOpenChange={setShowPasswordPrompt}>

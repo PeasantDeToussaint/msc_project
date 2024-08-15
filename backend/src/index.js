@@ -13,6 +13,7 @@ import writingTask2Questions from '../routes/writingTask2Questions.js';
 import writingTask1Questions from '../routes/writingTask1Questions.js';
 import processEssay from '../routes/processEssay.js';
 import adminRoutes from '../routes/adminRoutes.js';
+import processEssayTask1 from '../routes/processEssayTask1.js';
 
 dotenv.config();
 const app = express();
@@ -51,8 +52,10 @@ app.use('/speakingQuestions', speakingQuestions);
 app.use('/audio', processAudio);
 app.use('/writingTask2Questions', writingTask2Questions);
 app.use('/essay', processEssay);
+app.use('/essayTask1', processEssayTask1);
 app.use('/admin', adminRoutes);
 app.use('/writingTask1Questions', writingTask1Questions);
+
 
 // Start the server
 app.listen(PORT, () => {

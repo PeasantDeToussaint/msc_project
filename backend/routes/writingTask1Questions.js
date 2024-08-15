@@ -25,6 +25,48 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
+// Get a prompt based on selected category
+router.post('/selected-question', async (req, res) => {
+  const { categories } = req.body;
+
+  try {
+    const result = await pool.query(
+      'SELECT * FROM writing_task1_prompts WHERE category = ANY($1::text[]) ORDER BY RANDOM() LIMIT 1',
+      [categories]
+    );
+
+    if (result.rows.length > 0) {
+      const prompt = result.rows[0];
+      res.json(prompt);
+    } else {
+      res.status(404).json({ error: 'No prompt found for the selected category' });
+    }
+  } catch (err) {
+    console.error('Error fetching selected prompt:', err.message);
+    res.status(500).send('Server error');
+  }
+});
+
+// Get a random prompt
+router.get('/random-question', async (req, res) => {
+  try {
+    const result = await pool.query(
+      'SELECT * FROM writing_task1_prompts ORDER BY RANDOM() LIMIT 1'
+    );
+
+    if (result.rows.length > 0) {
+      const prompt = result.rows[0];
+      res.json(prompt);
+    } else {
+      res.status(404).json({ error: 'No prompt found' });
+    }
+  } catch (err) {
+    console.error('Error fetching random prompt:', err.message);
+    res.status(500).send('Server error');
+  }
+});
+
+
 // Get all writing task 1 prompts
 router.get('/prompts', async (req, res) => {
   try { 
