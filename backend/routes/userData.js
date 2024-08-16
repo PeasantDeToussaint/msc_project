@@ -11,13 +11,13 @@ router.get('/:userId', async (req, res) => {
   try {
     // Query for user details
     const userQuery = `
-      SELECT id, name, email FROM users WHERE id = $1
+      SELECT user_id, name, email FROM users WHERE id = $1
     `;
     const userResult = await pool.query(userQuery, [userId]);
 
     // Query for past essays
     const essaysQuery = `
-      SELECT id, prompt, essay, overall_score FROM essays WHERE user_id = $1
+      SELECT user_id, prompt, essay, overall_score FROM essays WHERE user_id = $1
     `;
     const essaysResult = await pool.query(essaysQuery, [userId]);
 
