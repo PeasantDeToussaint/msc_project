@@ -39,12 +39,12 @@ export default function LoginPage() {
       if (response.ok) {
         const data = await response.json();
         toast({
-          description: "You're logged in! Redirecting to home page in 2 seconds...",
+          description: "You're logged in! Redirecting to home page...",
         });
         setTimeout(() => {
-          login(data.jwtToken); // Use login function from useAuth
-          navigate("/Homepage"); // Navigate to homepage after 2 seconds
-        }, 2000); // 2000 milliseconds = 2 seconds
+          login(data.jwtToken); 
+          navigate("/Homepage"); 
+        }, 1000); 
       } else {
         toast({
           description: "Oops. Login failed for some reason.",

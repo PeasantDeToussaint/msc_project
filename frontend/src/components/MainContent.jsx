@@ -20,6 +20,8 @@ import WritingPracticeTask2 from '../components/WritingPracticeTask2Practice';
 import WritingPracticeTask2Feedback from '../components/WritingPracticeTask2Feedback';
 import ManageTestbank from '../components/ManageTestbank';
 import WritingPracticeTask1Feedback from '../components/WritingPracticeTask1Feedback';
+import SpeakingPracticeFeedback from '../components/SpeakingPracticeFeedback';
+import UserPage from '../components/UserPageComponents/UserPage';
 import { useAuth } from '../context/authContext';
 
 
@@ -53,6 +55,8 @@ function MainContent() {
           <Route path="/WritingPracticeTask2Feedback" element={isAuthenticated ? <WritingPracticeTask2Feedback/> : <Navigate replace to="/LoginPage"/>}/>
           <Route path="/WritingPracticeTask1Feedback" element={isAuthenticated ? <WritingPracticeTask1Feedback/> : <Navigate replace to="/LoginPage"/>}/>
           <Route path="/ManageTestbank" element={isAuthenticated ? <ManageTestbank/> : <Navigate replace to="/LoginPage"/>}/>
+          <Route path="/SpeakingPracticeFeedback" element={isAuthenticated?<SpeakingPracticeFeedback/> : <Navigate replace to="/LoginPage"/>}/>
+          <Route path="/UserPage" element={isAuthenticated?<UserPage/> : <Navigate replace to="/LoginPage"/>}/>
         </Routes>
       </div>
     </div>

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import encoderSingleton from '../lib/encoderSingleton';
 import mediaRecorderSingleton from '../lib/mediaRecorderSingleton';
 import { convertWebmToWav } from '../lib/audioConverter';
+import { useNavigate } from 'react-router-dom';
 
 const RandomQuestions = () => {
   const [questions, setQuestions] = useState({ part1: [], part2: [], part3: [] });
@@ -18,8 +19,10 @@ const RandomQuestions = () => {
   const [recordedTexts, setRecordedTexts] = useState({});
   const [audioBlobs, setAudioBlobs] = useState([]);
   const [capturedStream, setCapturedStream] = useState(null);
+  const [submissions, setSubmissions] = useState([]);
   const timerRef = useRef(null);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchQuestions = async () => {
@@ -181,6 +184,7 @@ const RandomQuestions = () => {
       if (response.ok) {
         const data = await response.json();
         setRecordedTexts((prev) => ({ ...prev, [recording?.id]: data.transcription }));
+        setSubmissions((prev) => [...prev, { question: recording, transcription: data.transcription }]); // Accumulate all responses
         toast({
           title: "Transcription Completed",
           description: "Your audio has been transcribed.",
@@ -215,18 +219,13 @@ const RandomQuestions = () => {
   };
 
   const handleSubmitAll = async () => {
-    const submissions = Object.keys(recordedTexts).map(id => ({
-      question: getQuestionById(id),
-      transcription: recordedTexts[id]
-    }));
-
     try {
-      const response = await fetch('/grading/submit', {
+      const response = await fetch('http://localhost:3000/transcription/processTranscription', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(submissions)
+        body: JSON.stringify({ submissions }) // Send all submissions at once
       });
 
       if (response.ok) {
@@ -235,6 +234,7 @@ const RandomQuestions = () => {
           description: "All your recordings have been submitted for grading.",
           status: "success"
         });
+        navigate('/SpeakingPracticeFeedback', { state: { submissions } }); // Pass submissions to the Feedback page
       } else {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }

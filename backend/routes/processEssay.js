@@ -3,6 +3,9 @@ import OpenAI from 'openai';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import pool from '../db.js'; // Import your database connection
+import authorize from '../middleware/authorize.js'; // Import the authorization middleware
+import jwt from 'jsonwebtoken';
 
 // Resolve __filename and __dirname for ESM compatibility
 const __filename = fileURLToPath(import.meta.url);
@@ -21,10 +24,36 @@ const promptFilePath = path.resolve(__dirname, '../utils', 'instruction_task2.tx
 const promptContent = fs.readFileSync(promptFilePath, 'utf-8');
 
 // Define the POST route for processing the essay
-router.post('/processEssay', async (req, res) => {
-  const { prompt, response } = req.body;
+router.post('/processEssay', authorize, async (req, res) => {
+  const authHeader = req.headers['jwt_token'];
+  console.log("Authorization Header:", authHeader);
+
+  if (!authHeader) {
+    console.log("Authorization header is missing");
+    return res.status(403).json({ message: 'Authorization header is missing' });
+  }
+
+  const token = authHeader.split(' ')[1];
+  console.log("Token:", token);
+
+  if (!token) {
+    console.log("Token is missing");
+    return res.status(403).json({ message: 'Token is missing' });
+  }
 
   try {
+    // Verify the token and extract user information
+    const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY); 
+    console.log("Decoded Token:", decoded);
+
+    const userId = decoded.user.id;
+    console.log("User ID from Token:", userId);
+
+    const { prompt, response } = req.body;
+    console.log("Prompt:", prompt);
+    console.log("Response:", response);
+
+    // Call OpenAI to process the essay
     const completion = await openai.chat.completions.create({
       model: 'gpt-4o-mini',
       messages: [
@@ -40,11 +69,18 @@ router.post('/processEssay', async (req, res) => {
     // Parse the feedback text
     const feedback = parseFeedback(text);
 
-    // Send the final JSON response including the overall score
+    // Store the essay, prompt, and overall score in the database
+    const query = `
+      INSERT INTO essays (user_id, prompt, essay, overall_score)
+      VALUES ($1, $2, $3, $4) RETURNING id
+    `;
+    const values = [userId, prompt, response, feedback.overallScore];
+    const result = await pool.query(query, values);
+
     res.json(feedback);
   } catch (error) {
-    console.error('Error fetching feedback:', error);
-    res.status(500).json({ error: 'Error occurred' });
+    console.error('Error processing essay:', error);
+    res.status(500).json({ error: 'Error occurred while processing the essay' });
   }
 });
 

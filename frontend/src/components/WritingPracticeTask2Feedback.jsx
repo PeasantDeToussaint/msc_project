@@ -24,10 +24,15 @@ export default function Feedback() {
     if (prompt && response && !hasFetchedFeedback.current) {
       setLoading(true);
       hasFetchedFeedback.current = true; // Ensure we only fetch feedback once
+
+      const token = localStorage.getItem('token');
+      console.log("token is like this:", token);
+
       fetch('http://localhost:3000/essay/processEssay', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'jwt_token': `Bearer ${token}`,
         },
         body: JSON.stringify({ prompt, response }),
       })
