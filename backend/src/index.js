@@ -15,6 +15,7 @@ import processEssay from '../routes/processEssay.js';
 import adminRoutes from '../routes/adminRoutes.js';
 import processEssayTask1 from '../routes/processEssayTask1.js';
 import processTranscription from '../routes/processTranscription.js';
+import UserData from '../routes/userData.js';
 
 dotenv.config();
 const app = express();
@@ -57,6 +58,7 @@ app.use('/essayTask1', processEssayTask1);
 app.use('/admin', adminRoutes);
 app.use('/writingTask1Questions', writingTask1Questions);
 app.use('/transcription', processTranscription);
+app.use('/userdata', UserData);
 
 
 // Start the server

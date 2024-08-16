@@ -80,7 +80,7 @@ export default function TopicSelection() {
     <div className="w-full max-w-3xl mx-auto py-12 px-4 md:px-6">
       <Toaster />
       <div className="text-center">
-        <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">IELTS Speaking Practice</h1>
+        <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">Speaking Practice</h1>
 
       </div>
       <div className="space-y-6">
