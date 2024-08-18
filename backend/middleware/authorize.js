@@ -7,7 +7,7 @@ const authorize = (req, res, next) => {
   console.log("authorize middleware called");
 
   // Get token from header
-  const token = req.header('jwt_token');
+  const token = req.header('Authorization');
   console.log('Received token:', token);
 
   // Check if no token

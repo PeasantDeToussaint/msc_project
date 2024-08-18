@@ -6,7 +6,7 @@ import 'dotenv/config';
 export default function verifyToken(req, res, next) {
   // Get token from header
   console.log("VerifyTokenMiddleware is being called"); 
-  const token = req.header("jwt_token");
+  const token = req.header("Authorization");
   console.log("Received token:", token);
 
 

@@ -88,7 +88,7 @@ export default function Homepage() {
       <section className="bg-gradient-to-r from-primary to-primary-foreground py-20 px-4 md:px-6">
         <div className="container mx-auto max-w-4xl">
           <h1 className="text-4xl font-bold text-white md:text-5xl">
-            Everything you need to prepare for the IELTS. Completely Free.
+            Prepare for IELTs Writing & Speaking with AI Tools
           </h1>
           <p className="mt-4 text-lg text-white/80 md:text-xl">
           Learn IELTs using personalized practice tests and quizes that adjusts accoridng to your skills. Get accurate scoring on your writing and listening responses using our AI system.

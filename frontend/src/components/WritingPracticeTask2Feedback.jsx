@@ -32,7 +32,7 @@ export default function Feedback() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'jwt_token': `Bearer ${token}`,
+          'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify({ prompt, response }),
       })

@@ -25,7 +25,7 @@ const promptContent = fs.readFileSync(promptFilePath, 'utf-8');
 
 // Define the POST route for processing the essay
 router.post('/processEssay', authorize, async (req, res) => {
-  const authHeader = req.headers['jwt_token'];
+  const authHeader = req.headers['Authorization'];
   console.log("Authorization Header:", authHeader);
 
   if (!authHeader) {
