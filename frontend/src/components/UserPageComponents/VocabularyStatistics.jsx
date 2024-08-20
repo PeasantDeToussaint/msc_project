@@ -1,27 +1,29 @@
-import { useState, useEffect } from 'react';
-import { Table, TableBody, TableCell, TableHead, TableRow } from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
+import React, { useState, useEffect, Suspense } from 'react';
+import { ErrorBoundary } from 'react-error-boundary';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { AlertCircle, Loader2 } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { motion } from "framer-motion";
 import axios from 'axios';
 
-export default function VocabularyStatistics() {
-  const [activeSection, setActiveSection] = useState('advanced');
+function useVocabularyData(activeSection) {
   const [data, setData] = useState({});
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const jwtToken = localStorage.getItem('token');
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
-      setLoading(true);
-      setError(null); // Clear any previous errors
+      setIsLoading(true);
+      setError(null);
+      const jwtToken = localStorage.getItem('token');
+
       try {
-        let response;
         const headers = {
           'Authorization': `Bearer ${jwtToken}`
         };
 
+        let response;
         switch (activeSection) {
           case 'misspelled':
             response = await axios.get('http://localhost:3000/misSpellings/misSpellings', { headers });
@@ -36,178 +38,321 @@ export default function VocabularyStatistics() {
             setData({ rareWords: response.data.rareWords || [] });
             break;
           case 'lexicalDensity':
-            response = await axios.get('http://localhost:3000/lexicalDensity/lexicalDensity', { headers });
-            setData({ lexicalDensity: response.data.lexicalDensity || 0 });
+          case 'overview':
+            const [lexicalResponse, misspelledResponse, advancedResponse] = await Promise.all([
+              axios.get('http://localhost:3000/lexicalDensity/lexicalDensity', { headers }),
+              axios.get('http://localhost:3000/misSpellings/misSpellings', { headers }),
+              axios.get('http://localhost:3000/advancedVocabulary/advancedVocabulary', { headers })
+            ]);
+            setData({
+              lexicalDensity: parseFloat(lexicalResponse.data.lexicalDensity) || 0,
+              totalWords: lexicalResponse.data.totalWords || 0,
+              uniqueWords: lexicalResponse.data.uniqueWords || 0,
+              contentWords: lexicalResponse.data.contentWords || 0,
+              misspelledWords: misspelledResponse.data.misspelledWords || [],
+              advancedWordsUsed: advancedResponse.data.advancedWordsUsed || {},
+              advancedWordsSuggestions: advancedResponse.data.suggestions || [],
+              advancedWordsMessage: advancedResponse.data.message || ''
+            });
             break;
           case 'advanced':
             response = await axios.get('http://localhost:3000/advancedVocabulary/advancedVocabulary', { headers });
-            setData({ advancedWordsUsed: response.data.advancedWordsUsed || {} });
+            setData({
+              advancedWordsUsed: response.data.advancedWordsUsed || {},
+              advancedWordsSuggestions: response.data.suggestions || [],
+              advancedWordsMessage: response.data.message || ''
+            });
             break;
           default:
             break;
         }
-      } catch (error) {
-        console.error('Error fetching data:', error);
-        setError('Failed to load data.');
+      } catch (err) {
+        console.error('Error fetching data:', err);
+        setError(err instanceof Error ? err : new Error('An error occurred while fetching data.'));
+      } finally {
+        setIsLoading(false);
       }
-      setLoading(false);
     };
 
     fetchData();
-  }, [activeSection, jwtToken]);
+  }, [activeSection]);
+
+  return { data, error, isLoading };
+}
+
+const sections = [
+  { key: 'overview', label: 'Overview' },
+  { key: 'misspelled', label: 'Misspelled' },
+  { key: 'repeated', label: 'Repeated' },
+  { key: 'rare', label: 'Rare' },
+  { key: 'advanced', label: 'Advanced' },
+];
+
+function LoadingFallback() {
+  return (
+    <div className="flex justify-center items-center h-48">
+      <Loader2 className="h-8 w-8 animate-spin text-primary" />
+    </div>
+  );
+}
+
+function ErrorFallback({ error, resetErrorBoundary }) {
+  return (
+    <Alert variant="destructive">
+      <AlertCircle className="h-4 w-4" />
+      <AlertTitle>Error</AlertTitle>
+      <AlertDescription>
+        {error.message}
+        <button onClick={resetErrorBoundary} className="ml-2 underline">Try again</button>
+      </AlertDescription>
+    </Alert>
+  );
+}
+
+function RadialProgress({ value }) {
+  const circumference = 2 * Math.PI * 45;
+  const strokeDashoffset = circumference - (value / 100) * circumference;
 
   return (
-    <div className="w-full max-w-6xl mx-auto p-4 space-y-6 text-base">
+    <div className="relative w-32 h-32">
+      <svg className="w-full h-full" viewBox="0 0 100 100">
+        <circle
+          className="text-muted-foreground"
+          strokeWidth="10"
+          stroke="currentColor"
+          fill="transparent"
+          r="45"
+          cx="50"
+          cy="50"
+        />
+        <circle
+          className="text-primary"
+          strokeWidth="10"
+          strokeDasharray={circumference}
+          strokeDashoffset={strokeDashoffset}
+          strokeLinecap="round"
+          stroke="currentColor"
+          fill="transparent"
+          r="45"
+          cx="50"
+          cy="50"
+        />
+      </svg>
+      <div className="absolute inset-0 flex items-center justify-center">
+        <span className="text-2xl font-bold">{value}%</span>
+      </div>
+    </div>
+  );
+}
+
+function WordCloud({ words, maxFontSize = 24, minFontSize = 12 }) {
+  const maxCount = Math.max(...words.map(w => w.count));
+  
+  return (
+    <div className="flex flex-wrap justify-center gap-2 p-4">
+      {words.map((word, index) => {
+        const fontSize = ((word.count / maxCount) * (maxFontSize - minFontSize)) + minFontSize;
+        return (
+          <motion.span
+            key={index}
+            className="inline-block"
+            style={{ fontSize: `${fontSize}px` }}
+            initial={{ opacity: 0, scale: 0.5 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5, delay: index * 0.1 }}
+          >
+            {word.text}
+          </motion.span>
+        );
+      })}
+    </div>
+  );
+}
+
+function HeatMap({ words }) {
+  const maxOccurrences = Math.max(...words.map(w => w.occurrences));
+  
+  return (
+    <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+      {words.map((word, index) => {
+        const intensity = (word.occurrences / maxOccurrences) * 100;
+        return (
+          <motion.div
+            key={index}
+            className="p-2 rounded"
+            style={{ backgroundColor: `hsla(220, 100%, 50%, ${intensity}%)` }}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: index * 0.1 }}
+          >
+            <span className="font-medium text-white">{word.word}</span>
+            <span className="ml-2 text-sm text-white/80">{word.occurrences}</span>
+          </motion.div>
+        );
+      })}
+    </div>
+  );
+}
+
+function AnimatedUnderline({ word, enhancedCorrection, frequency }) {
+  const [correction, definition, example] = enhancedCorrection.split('\n');
+
+  return (
+    <div className="group relative inline-block mr-4 mb-2">
+      <span className="text-red-500">{word}</span>
+      <span className="absolute left-0 -bottom-1 w-full h-0.5 bg-green-500 scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></span>
+      <div className="absolute left-0 -top-32 bg-black text-white text-xs p-2 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-300 w-64 z-10">
+        <p>{correction}</p>
+        <p>{definition}</p>
+        <p>{example}</p>
+        <p>Frequency: {frequency}</p>
+      </div>
+    </div>
+  );
+}
+
+function AdvancedWordCard({ word, definition, usage, count }) {
+  return (
+    <Card className="mb-4">
+      <CardHeader>
+        <CardTitle>{word}</CardTitle>
+        {count && <CardDescription>Used {count} time(s)</CardDescription>}
+      </CardHeader>
+      <CardContent>
+        <p><strong>Definition:</strong> {definition}</p>
+        {usage && <p><strong>Example:</strong> {usage}</p>}
+      </CardContent>
+    </Card>
+  );
+}
+
+function SectionContent({ section, data }) {
+  switch (section) {
+    case 'overview':
+      return (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Lexical Density</CardTitle>
+            </CardHeader>
+            <CardContent className="flex justify-center">
+              <RadialProgress value={data.lexicalDensity || 0} />
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle>Word Stats</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ul className="space-y-2">
+                <li>Total Words: {data.totalWords || 0}</li>
+                <li>Unique Words: {data.uniqueWords || 0}</li>
+                <li>Content Words: {data.contentWords || 0}</li>
+                <li>Misspelled Words: {data.misspelledWords?.length || 0}</li>
+                <li>Advanced Words: {Object.keys(data.advancedWordsUsed || {}).length}</li>
+              </ul>
+            </CardContent>
+          </Card>
+        </div>
+      );
+    case 'misspelled':
+      return (
+        <div className="flex flex-wrap">
+          {data.misspelledWords?.map((word, index) => (
+            <AnimatedUnderline 
+              key={index} 
+              word={word.word} 
+              enhancedCorrection={word.enhancedCorrection} 
+              frequency={word.frequency}
+            />
+          ))}
+        </div>
+      );
+    case 'repeated':
+      return <HeatMap words={data.repeatedWords || []} />;
+    case 'rare':
+      return <WordCloud words={data.rareWords?.map(word => ({ text: word, count: 1 })) || []} />;
+    case 'advanced':
+      return (
+        <div>
+          <p className="mb-4">{data.advancedWordsMessage}</p>
+          <h3 className="text-xl font-bold mb-4">Advanced Words Used</h3>
+          {Object.entries(data.advancedWordsUsed).map(([word, details], index) => (
+            <AdvancedWordCard 
+              key={index}
+              word={word}
+              definition={details.definition}
+              count={details.count}
+            />
+          ))}
+          <h3 className="text-xl font-bold my-4">Suggested Advanced Words</h3>
+          {data.advancedWordsSuggestions.map((word, index) => (
+            <AdvancedWordCard 
+              key={index}
+              word={word.word}
+              definition={word.definition}
+              usage={word.usage}
+            />
+          ))}
+        </div>
+      );
+    default:
+      return null;
+  }
+}
+
+export default function VocabularyStatistics() {
+  const [activeSection, setActiveSection] = useState('overview');
+  const { data, error, isLoading } = useVocabularyData(activeSection);
+
+  return (
+    <div className="w-full max-w-4xl mx-auto p-4 space-y-6">
       <header className="text-center">
-        <p className="text-muted-foreground text-base">Analyze and improve your vocabulary in your writings with statistics and insights.</p>
+        <h1 className="text-3xl font-bold mb-2">Vocabulary Insights</h1>
+        <p className="text-muted-foreground">
+          Discover the richness and areas for improvement in your writing.
+        </p>
       </header>
 
-      <nav className="flex justify-center space-x-2 overflow-x-auto">
-        {[
-          { key: 'misspelled', label: 'Misspelled Words' },
-          { key: 'repeated', label: 'Repeated Words' },
-          { key: 'rare', label: 'Rare Words' },
-          { key: 'lexicalDensity', label: 'Lexical Density' },
-          { key: 'advanced', label: 'Advanced Vocabulary' }
-        ].map((section) => (
-          <Button
-            key={section.key}
-            variant={activeSection === section.key ? 'default' : 'outline'}
-            onClick={() => setActiveSection(section.key)}
-            size="sm"
-            className="text-base"
-          >
-            {section.label}
-          </Button>
+      <Tabs value={activeSection} onValueChange={setActiveSection}>
+        <TabsList className="grid w-full grid-cols-3 lg:grid-cols-5">
+          {sections.map((section) => (
+            <TabsTrigger key={section.key} value={section.key}>
+              {section.label}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+
+        {sections.map((section) => (
+          <TabsContent key={section.key} value={section.key}>
+            <Card>
+              <CardHeader>
+                <CardTitle>{section.label}</CardTitle>
+                <CardDescription>
+                  {section.key === 'overview' && 'A snapshot of your vocabulary usage'}
+                  {section.key === 'misspelled' && 'Words that might need correction'}
+                  {section.key === 'repeated' && 'Words you use frequently'}
+                  {section.key === 'rare' && 'Uncommon words in your writing'}
+                  {section.key === 'advanced' && 'Sophisticated vocabulary you\'ve employed'}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ErrorBoundary FallbackComponent={ErrorFallback} onReset={() => setActiveSection(activeSection)}>
+                  <Suspense fallback={<LoadingFallback />}>
+                    {isLoading ? (
+                      <LoadingFallback />
+                    ) : error ? (
+                      <ErrorFallback error={error} resetErrorBoundary={() => setActiveSection(activeSection)} />
+                    ) : (
+                      <SectionContent section={section.key} data={data} />
+                    )}
+                  </Suspense>
+                </ErrorBoundary>
+              </CardContent>
+            </Card>
+          </TabsContent>
         ))}
-      </nav>
-
-      <main className="grid gap-6">
-        {loading ? (
-          <div className="flex justify-center items-center">
-            <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-primary"></div>
-          </div>
-        ) : error ? (
-          <div className="text-red-500 text-center">
-            {error}
-          </div>
-        ) : (
-          <>
-            {activeSection === 'misspelled' && data.misspelledWords?.length > 0 && (
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-xl">Misspelled Words</CardTitle>
-                  <CardDescription className="text-base">Common misspellings and their corrections</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Table>
-                    <thead>
-                      <TableRow>
-                        <TableHead className="text-base">Word</TableHead>
-                        <TableHead className="text-base">Suggested Correction</TableHead>
-                        <TableHead className="text-base">Frequency</TableHead>
-                      </TableRow>
-                    </thead>
-                    <tbody>
-                      {data.misspelledWords.map((word, index) => (
-                        <TableRow key={index}>
-                          <TableCell className="text-base">{word.word}</TableCell>
-                          <TableCell className="text-base">{word.suggestedCorrection}</TableCell>
-                          <TableCell className="text-base">{word.frequency}</TableCell>
-                        </TableRow>
-                      ))}
-                    </tbody>
-                  </Table>
-                </CardContent>
-              </Card>
-            )}
-
-            {activeSection === 'repeated' && data.repeatedWords?.length > 0 && (
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-xl">Repeated Words</CardTitle>
-                  <CardDescription className="text-base">Frequently repeated words</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Table>
-                    <thead>
-                      <TableRow>
-                        <TableHead className="text-base">Word</TableHead>
-                        <TableHead className="text-base">Occurrences</TableHead>
-                      </TableRow>
-                    </thead>
-                    <tbody>
-                      {data.repeatedWords.map((word, index) => (
-                        <TableRow key={index}>
-                          <TableCell className="text-base">{word.word}</TableCell>
-                          <TableCell className="text-base">{word.occurrences}</TableCell>
-                        </TableRow>
-                      ))}
-                    </tbody>
-                  </Table>
-                </CardContent>
-              </Card>
-            )}
-
-            {activeSection === 'rare' && data.rareWords?.length > 0 && (
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-xl">Rare Word Usage</CardTitle>
-                  <CardDescription className="text-base">Uncommon words used in your writing</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <ul className="space-y-4">
-                    {data.rareWords.map((word, index) => (
-                      <li key={index} className="bg-muted p-4 rounded-lg">
-                        <div className="font-bold text-lg">{word}</div>
-                      </li>
-                    ))}
-                  </ul>
-                </CardContent>
-              </Card>
-            )}
-
-            {activeSection === 'lexicalDensity' && data.lexicalDensity !== undefined && (
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-xl">Lexical Density</CardTitle>
-                  <CardDescription className="text-base">
-                    The ratio of unique words to total words in your writing
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-center mb-4">
-                    <span className="text-3xl font-bold">{data.lexicalDensity}%</span>
-                  </div>
-                  <Progress value={data.lexicalDensity} className="w-full h-3 mb-3" />
-                  <p className="text-base text-muted-foreground">
-                    Lexical density is a measure of the proportion of content words (nouns, verbs, adjectives, and adverbs) to the total number of words. A higher lexical density indicates more informative and complex writing, which is important for IELTS writing tasks.
-                  </p>
-                </CardContent>
-              </Card>
-            )}
-
-            {activeSection === 'advanced' && data.advancedWordsUsed && (
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-xl">Advanced Vocabulary</CardTitle>
-                  <CardDescription className="text-base">Examples of advanced words used in your writing</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {Object.entries(data.advancedWordsUsed).map(([word, details], index) => (
-                      <div key={index} className="bg-muted p-3 rounded-lg">
-                        <div className="font-bold text-lg">{word}</div>
-                        <div className="text-base text-muted-foreground">{details.definition}</div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-          </>
-        )}
-      </main>
+      </Tabs>
     </div>
   );
 }

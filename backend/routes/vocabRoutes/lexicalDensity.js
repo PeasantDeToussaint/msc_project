@@ -21,6 +21,10 @@ const calculateLexicalDensity = (essaysText) => {
     const tokens = tokenizer.tokenize(essaysText.toLowerCase());
     console.log('Tokens:', tokens); // Debugging
 
+    // Count unique words
+    const uniqueWords = new Set(tokens).size;
+    console.log('Unique Words:', uniqueWords); // Debugging
+
     // POS tagging to identify content words
     const taggedWords = tagger.tag(tokens);
     console.log('Tagged Words:', taggedWords.taggedWords); // Debugging
@@ -45,6 +49,7 @@ const calculateLexicalDensity = (essaysText) => {
     return {
         lexicalDensity,
         totalWords,
+        uniqueWords,
         contentWords,
         taggedWords: taggedWords.taggedWords // For debugging
     };

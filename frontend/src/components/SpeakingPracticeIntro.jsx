@@ -1,10 +1,58 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { useSpring, animated } from 'react-spring';
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { Toaster } from "@/components/ui/toaster";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
+const FloatingObject = ({ delay, style }) => {
+  const props = useSpring({
+    loop: true,
+    to: [
+      { transform: 'translate3d(0,20px,0)' },
+      { transform: 'translate3d(0,-20px,0)' },
+    ],
+    from: { transform: 'translate3d(0,0px,0)' },
+    config: {
+      duration: 2000 + delay,
+    },
+  });
+
+  return (
+    <animated.div
+      style={{
+        ...props,
+        ...style,
+        position: 'absolute',
+        width: '50px',
+        height: '50px',
+        borderRadius: '50%',
+        background: 'radial-gradient(circle, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 70%)',
+      }}
+    />
+  );
+};
+
+const AnimatedBackground = () => {
+  return (
+    <div className="fixed inset-0 overflow-hidden -z-10">
+      <div className="absolute inset-0 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 opacity-20" />
+      <FloatingObject delay={0} style={{ top: '10%', left: '10%' }} />
+      <FloatingObject delay={500} style={{ top: '20%', right: '20%' }} />
+      <FloatingObject delay={1000} style={{ bottom: '15%', left: '30%' }} />
+      <FloatingObject delay={1500} style={{ bottom: '25%', right: '15%' }} />
+    </div>
+  );
+};
+
+const fadeIn = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0 }
+};
 
 const topics = {
   part1: [
@@ -62,7 +110,7 @@ export default function TopicSelection() {
     if (selectedTopics.part1.length < 1 || selectedTopics.part2.length < 1 || selectedTopics.part3.length < 1) {
       toast({
         title: "Selection Error",
-        description: "You must choose at least one topics from each section.",
+        description: "You must choose at least one topic from each section.",
         status: "error"
       });
     } else {
@@ -77,55 +125,70 @@ export default function TopicSelection() {
   };
 
   return (
-    <div className="w-full max-w-3xl mx-auto py-12 px-4 md:px-6">
+    <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8 relative">
+      <AnimatedBackground />
+      <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:20px_20px]" />
       <Toaster />
-      <div className="text-center">
-        <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">Speaking Practice</h1>
-
-      </div>
-      <div className="space-y-6">
-        <div className="space-y-4">
-          <p className="text-muted-foreground">
-            The IELTS Speaking Exam is a 11-14 minute face-to-face interview with a certified examiner. It is divided into three parts:
-          </p>
-          <ul className="list-disc pl-6 space-y-2">
-            <li>Part 1: Introduction and interview (4-5 minutes)</li>
-            <li>Part 2: Cue Card/Candidate Task Card (3-4 minutes)</li>
-            <li>Part 3: Discussion (4-5 minutes)</li>
-          </ul>
-          <p className="text-muted-foreground mt-4">
-            The Speaking test assesses whether candidates can communicate effectively in English. The assessment takes into account Fluency and Coherence, Lexical Resource, Grammatical Range and Accuracy, and Pronunciation.
-          </p>
-        </div>
-        <div className="space-y-4">
-          <div className="flex justify-center space-x-4">
-            <Button className="w-full sm:w-auto" onClick={handleRandomTopics}>Practice Random Topics</Button>
+      <motion.div 
+        className="max-w-3xl mx-auto space-y-8 relative z-10"
+        initial="hidden"
+        animate="visible"
+        variants={fadeIn}
+      >
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl overflow-hidden p-6 sm:p-8">
+          <div className="text-center mb-8">
+            <h1 className="text-3xl font-bold tracking-tight sm:text-4xl text-indigo-800">Speaking Practice</h1>
           </div>
-          <div className="flex justify-center space-x-4">
-            <h2 className="text-xl font-bold">Or Select Topics to Practice</h2>
-          </div>
-          {Object.keys(topics).map((part) => (
-            <div key={part} className="space-y-4">
-              <h3 className="text-lg font-bold">Part {part.slice(-1)}</h3>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                {topics[part].map((topic, index) => (
-                  <div key={index} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={`${part}-${index}`}
-                      checked={selectedTopics[part].includes(topic)}
-                      onCheckedChange={(checked) => handleCheckboxChange(part, topic, checked)}
-                    />
-                    <Label htmlFor={`${part}-${index}`}>{topic}</Label>
-                  </div>
-                ))}
-              </div>
+          <Card className="mb-8">
+            <CardHeader>
+              <CardTitle>IELTS Speaking Exam Overview</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground mb-4">
+                The IELTS Speaking Exam is a 11-14 minute face-to-face interview with a certified examiner. It is divided into three parts:
+              </p>
+              <ul className="list-disc pl-6 space-y-2 mb-4">
+                <li>Part 1: Introduction and interview (4-5 minutes)</li>
+                <li>Part 2: Cue Card/Candidate Task Card (3-4 minutes)</li>
+                <li>Part 3: Discussion (4-5 minutes)</li>
+              </ul>
+              <p className="text-muted-foreground">
+                The Speaking test assesses whether candidates can communicate effectively in English. The assessment takes into account Fluency and Coherence, Lexical Resource, Grammatical Range and Accuracy, and Pronunciation.
+              </p>
+            </CardContent>
+          </Card>
+          <div className="space-y-6">
+            <div className="flex justify-center space-x-4 mb-8">
+              <Button className="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700" onClick={handleRandomTopics}>Practice Random Topics</Button>
             </div>
-          ))}
+            <h2 className="text-xl font-bold text-center text-indigo-700 mb-4">Or Select Topics to Practice</h2>
+            {Object.keys(topics).map((part) => (
+              <Card key={part} className="mb-6">
+                <CardHeader>
+                  <CardTitle>Part {part.slice(-1)}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                    {topics[part].map((topic, index) => (
+                      <div key={index} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`${part}-${index}`}
+                          checked={selectedTopics[part].includes(topic)}
+                          onCheckedChange={(checked) => handleCheckboxChange(part, topic, checked)}
+                        />
+                        <Label htmlFor={`${part}-${index}`} className="text-sm">{topic}</Label>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+            <div className="flex justify-center space-x-4">
+              <Button className="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700" onClick={handleStartPractice}>Start Practice</Button>
+            </div>
+          </div>
         </div>
-        <div className="flex justify-center space-x-4">
-          <Button className="w-full sm:w-auto" onClick={handleStartPractice}>Start Practice</Button>
-        </div>
-      </div>
+      </motion.div>
     </div>
   );
 }

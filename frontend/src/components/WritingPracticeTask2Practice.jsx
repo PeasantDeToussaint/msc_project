@@ -1,9 +1,51 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { useSpring, animated, config } from 'react-spring';
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { useLocation, useNavigate } from 'react-router-dom';
 import { Toaster } from "@/components/ui/toaster";
 import { useToast } from "@/components/ui/use-toast";
+import { Clock, Send } from 'lucide-react';
+
+const FloatingObject = ({ delay, style }) => {
+  const props = useSpring({
+    loop: true,
+    from: { transform: 'translate3d(0,0px,0)' },
+    to: [
+      { transform: 'translate3d(0,20px,0)' },
+      { transform: 'translate3d(0,-20px,0)' },
+    ],
+    config: {
+      duration: 2000 + delay,
+    },
+  });
+
+  return (
+    <animated.div
+      style={{
+        ...props,
+        ...style,
+        position: 'absolute',
+        width: '50px',
+        height: '50px',
+        borderRadius: '50%',
+        background: 'radial-gradient(circle, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 70%)',
+      }}
+    />
+  );
+};
+
+const AnimatedBackground = () => {
+  return (
+    <div className="fixed inset-0 overflow-hidden -z-10">
+      <div className="absolute inset-0 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 opacity-20" />
+      <FloatingObject delay={0} style={{ top: '10%', left: '10%' }} />
+      <FloatingObject delay={500} style={{ top: '20%', right: '20%' }} />
+      <FloatingObject delay={1000} style={{ bottom: '15%', left: '30%' }} />
+      <FloatingObject delay={1500} style={{ bottom: '25%', right: '15%' }} />
+    </div>
+  );
+};
 
 const WritingPracticeTask2 = () => {
   const [timer, setTimer] = useState(0);
@@ -13,7 +55,7 @@ const WritingPracticeTask2 = () => {
   const [category, setCategory] = useState('');
   const [timeLimit, setTimeLimit] = useState(0);
   const [isTimeUp, setIsTimeUp] = useState(false);
-  const [isSubmitted, setIsSubmitted] = useState(false); // Prevent double submission
+  const [isSubmitted, setIsSubmitted] = useState(false);
   const location = useLocation();
   const promptData = location.state?.prompt;
   const { toast } = useToast();
@@ -53,8 +95,8 @@ const WritingPracticeTask2 = () => {
   const handleSubmit = (event) => {
     event.preventDefault();
 
-    if (isSubmitted) return; // Prevent double submission
-    setIsSubmitted(true); // Set the submission flag to true
+    if (isSubmitted) return;
+    setIsSubmitted(true);
 
     toast({ description: "Response submitted!" });
 
@@ -72,69 +114,66 @@ const WritingPracticeTask2 = () => {
     return `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
+  const contentAnimation = useSpring({
+    from: { opacity: 0, transform: 'translateY(20px)' },
+    to: { opacity: 1, transform: 'translateY(0px)' },
+    config: config.molasses,
+  });
+
   return (
-    <div className="flex flex-col items-center justify-center h-screen bg-background">
+    <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8 relative">
+      <AnimatedBackground />
+      <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:20px_20px]" />
       <Toaster />
-      <div className="w-full max-w-4xl p-8 md:p-12 lg:p-16 bg-card rounded-lg shadow-lg">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-black">Task 2 Practice</h1>
-          <p className="text-sm text-muted-foreground">Write a 250-word response.</p>
-        </div>
-        <div className="bg-card-foreground p-6 rounded-md mb-8">
-          <p className="text-sm text-primary-foreground font-medium">
-            Topic: {category.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
-          </p>
-          <p className="text-sm text-primary-foreground font-medium">
-            Question: {prompt || "Loading..."}
-          </p>
-          <p className="text-sm text-primary-foreground font-medium">
-            Time Limit: {timeLimit} minutes
-          </p>
-        </div>
-        <form className="flex flex-col gap-8" onSubmit={handleSubmit}>
-          <div className="relative">
-            <Textarea
-              value={response}
-              onChange={handleResponseChange}
-              placeholder="Start writing your response here..."
-              className="w-full h-[400px] text-sm p-4 rounded-md border border-input focus:border-primary focus:ring-1 focus:ring-primary"
-              disabled={isTimeUp || isSubmitted} // Disable textarea if time is up or already submitted
-            />
-            <div className="absolute top-4 right-4 flex items-center gap-2 text-sm text-muted-foreground">
-              <ClockIcon className="w-4 h-4" />
-              <span id="timer">{formatTime(timer)}</span>
-            </div>
+      <animated.div style={contentAnimation} className="max-w-4xl mx-auto space-y-8 relative z-10">
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl overflow-hidden p-6 sm:p-8">
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-gray-900">Task 2 Practice</h1>
+            <p className="text-sm text-gray-600">Write a 250-word response.</p>
           </div>
-          <div className="flex items-center justify-between">
-            <div className="text-sm text-muted-foreground">
-              <span id="word-count">{wordCount}</span> words
-            </div>
-            <Button type="submit" disabled={isTimeUp || isSubmitted}>Submit</Button>
+          <div className="bg-indigo-50 p-6 rounded-md mb-8">
+            <p className="text-sm text-indigo-900 font-medium mb-2">
+              Topic: {category.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
+            </p>
+            <p className="text-sm text-indigo-900 font-medium mb-2">
+              Question: {prompt || "Loading..."}
+            </p>
+            <p className="text-sm text-indigo-900 font-medium">
+              Time Limit: {timeLimit} minutes
+            </p>
           </div>
-        </form>
-      </div>
+          <form className="space-y-6" onSubmit={handleSubmit}>
+            <div className="relative">
+              <Textarea
+                value={response}
+                onChange={handleResponseChange}
+                placeholder="Start writing your response here..."
+                className="w-full h-[400px] text-sm p-4 rounded-md border border-gray-300 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                disabled={isTimeUp || isSubmitted}
+              />
+              <div className="absolute top-4 right-4 flex items-center gap-2 text-sm text-gray-500 bg-white px-2 py-1 rounded-md">
+                <Clock className="w-4 h-4" />
+                <span id="timer">{formatTime(timer)}</span>
+              </div>
+            </div>
+            <div className="flex items-center justify-between">
+              <div className="text-sm text-gray-600">
+                <span id="word-count">{wordCount}</span> words
+              </div>
+              <Button 
+                type="submit" 
+                disabled={isTimeUp || isSubmitted}
+                className="bg-indigo-600 hover:bg-indigo-700 text-white flex items-center"
+              >
+                <Send className="w-4 h-4 mr-2" />
+                Submit
+              </Button>
+            </div>
+          </form>
+        </div>
+      </animated.div>
     </div>
   );
 };
 
 export default WritingPracticeTask2;
-
-function ClockIcon(props) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <circle cx="12" cy="12" r="10" />
-      <polyline points="12 6 12 12 16 14" />
-    </svg>
-  );
-}
