@@ -57,7 +57,7 @@ const AnimatedBackground = () => {
   );
 };
 
-export default function Component() {
+export default function LoginPage() {
   const { login, isAuthenticated } = useAuth();
   const { toast } = useToast();
   const [email, setEmail] = useState('');
@@ -124,7 +124,7 @@ export default function Component() {
           <div className="px-8 py-12">
             <div className="text-center mb-8">
               <LogIn className="mx-auto h-12 w-12 text-indigo-600" />
-              <h2 className="mt-6 text-3xl font-extrabold text-gray-900">Welcome to Yasiman</h2>
+              <h2 className="mt-6 text-3xl font-extrabold text-gray-900">Welcome to YasiMan</h2>
               <p className="mt-2 text-sm text-gray-600">Sign in to your account</p>
             </div>
             <form className="space-y-6" onSubmit={handleSubmit}>
@@ -182,7 +182,7 @@ export default function Component() {
           </div>
         </div>
       </animated.div>
-      <Toaster />
+      <Toaster position="bottom-right" style={{ position: 'fixed', bottom: '1rem', right: '1rem' }} />
     </div>
   );
 }

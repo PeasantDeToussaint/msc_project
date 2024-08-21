@@ -217,7 +217,7 @@ export default function Component() {
   const isQuestAchieved = (quest) => quest.progress >= quest.target;
 
   return (
-    <div className="min-h-screen bg-gray-100 text-gray-800 p-4">
+    <div className="min-h-screen bg-gray-80 text-gray-800 p-4">
       <div className="container mx-auto">
         <animated.div style={fadeIn} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           <CardWrapper width="w-full md:col-span-2 lg:col-span-3">
