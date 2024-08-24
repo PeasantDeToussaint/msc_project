@@ -82,7 +82,7 @@ export default function Component() {
   const [currentMission, setCurrentMission] = useState({
     id: 1,
     name: "Wizard's Challenge",
-    description: "Abracadabra! Learn 1000 new words and cast your spell of knowledge.",
+    description: "Learn 1000 new words and cast your spell of knowledge.",
     target: 1000,
     type: "vocabulary",
     icon: Book
@@ -103,7 +103,7 @@ export default function Component() {
     { id: 1, name: "Vocabulary Virtuoso", description: "Learn 1000 new words", icon: Book, target: 1000, progress: 0, type: "vocabulary" },
     { id: 2, name: "Essay Extraordinaire", description: "Write 50 practice essays", icon: Pen, target: 50, progress: 0, type: "writing" },
     { id: 3, name: "Listening Leopard", description: "Complete 100 listening exercises", icon: Headphones, target: 100, progress: 0, type: "listening" },
-    { id: 4, name: "Speaking Sorcerer", description: "Practice speaking for 24 hours total", icon: Sparkles, target: 24, progress: 0, type: "speaking" },
+    { id: 4, name: "Speaking Sorcerer", description: "Practice 24 speaking questions", icon: Sparkles, target: 24, progress: 0, type: "speaking" },
     { id: 5, name: "Grammar Guru", description: "Achieve 100% on 10 grammar quizzes", icon: CheckCircle2, target: 10, progress: 0, type: "grammar" },
     { id: 6, name: "Idiom Illusionist", description: "Master 100 English idioms", icon: Zap, target: 100, progress: 0, type: "idioms" },
     { id: 7, name: "Pronunciation Prodigy", description: "Perfect pronunciation of 50 tongue twisters", icon: Brain, target: 50, progress: 0, type: "pronunciation" },
@@ -113,16 +113,16 @@ export default function Component() {
   ]);
 
   const missions = [
-    { id: 1, name: "Wizard's Challenge", description: "Abracadabra! Learn 1000 new words and cast your spell of knowledge.", target: 1000, type: "vocabulary", icon: Book },
-    { id: 2, name: "Enchantment", description: "Write 50 essays and enchant the world with your words.", target: 50, type: "writing", icon: Pen },
-    { id: 3, name: "Hush! Listen now!", description: "Pounce on 100 listening exercises and sharpen your ears.", target: 100, type: "listening", icon: Headphones },
-    { id: 4, name: "Cast the spell", description: "Speak for 24 hours and mesmerize everyone with your eloquence.", target: 24, type: "speaking", icon: Sparkles },
-    { id: 5, name: "Grammar Nazi", description: "Achieve 100% on 10 grammar quizzes and become the ultimate grammar ninja.", target: 10, type: "grammar", icon: CheckCircle2 },
-    { id: 6, name: "Thus spoke Zarathustra", description: "Master 100 idioms and leave everyone scratching their heads.", target: 100, type: "idioms", icon: Zap },
-    { id: 7, name: "Perfect articulator", description: "Perfect 50 tongue twisters and show off your linguistic gymnastics.", target: 50, type: "pronunciation", icon: Brain },
-    { id: 8, name: "Read the stars", description: "Blast through 1000 pages of English text and reach for the stars.", target: 1000, type: "reading", icon: Rocket },
-    { id: 9, name: "The Night Owl", description: "Study for 50 hours between 10 PM and 5 AM and become the master of the night.", target: 50, type: "study", icon: Moon },
-    { id: 10, name: "The Global Gossiper's Gala", description: "Have conversations with people from 10 different countries and become the ultimate social butterfly.", target: 10, type: "conversation", icon: Globe },
+    { id: 1, name: "Rote. Rote. Rote.", description: "Abracadabra! Learn 1000 new words.", target: 1000, type: "vocabulary", icon: Book },
+    { id: 2, name: "Enchantment", description: "Write 50 essays.", target: 50, type: "writing", icon: Pen },
+    { id: 3, name: "Hush! Listen!", description: "Do 100 listening exercises.", target: 100, type: "listening", icon: Headphones },
+    { id: 4, name: "Cast the spell", description: "Achieve 7 on speaking practices.", target: 24, type: "speaking", icon: Sparkles },
+    { id: 5, name: "Grammar Nazi", description: "Achieve 100% on 10 vocab quizzes.", target: 10, type: "grammar", icon: CheckCircle2 },
+    { id: 6, name: "Thus spoke Zarathustra", description: "Use 20 idioms in your essay", target: 100, type: "idioms", icon: Zap },
+    { id: 7, name: "Perfect articulator", description: "Maintain 100% spelling accuracy rate", target: 50, type: "pronunciation", icon: Brain },
+    { id: 8, name: "Read the stars", description: "Complete 1000 reading exercises", target: 1000, type: "reading", icon: Rocket },
+    { id: 9, name: "The Night Owl", description: "Study for 10 hours between 10 PM and 5 AM ", target: 50, type: "study", icon: Moon },
+    { id: 10, name: "Ah. I think we're good to go", description: "Achieve overall socre band 8 on a practice exam", target: 10, type: "conversation", icon: Globe },
   ];
 
   const spacedRepetitionItems = [

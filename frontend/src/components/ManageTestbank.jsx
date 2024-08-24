@@ -18,7 +18,7 @@ const endpoints = {
   writingTask1: `${API_BASE_URL}/writingTask1Questions/prompts`,
   writingTask2: `${API_BASE_URL}/writingTask2Questions/prompts`,
   speaking: `${API_BASE_URL}/speakingQuestions/prompts`,
-  reading: `${API_BASE_URL}/readingQuestions/prompts`,
+  reading: `${API_BASE_URL}/readingQuestions/questions`,
   listening: `${API_BASE_URL}/listeningQuestions/prompts`,
 }
 

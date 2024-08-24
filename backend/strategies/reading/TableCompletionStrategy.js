@@ -1,0 +1,35 @@
+import { BaseStrategy } from './baseStrategy.js';
+
+export class TableCompletionStrategy extends BaseStrategy {
+  constructor() {
+    super('Table Completion');
+  }
+
+  async validateAnswer(questionId, userAnswers) {
+    const question = await this.getQuestionById(questionId);
+    const data = question.data;
+
+    let score = 0;
+    const totalQuestions = data.questions.length;
+    const detailedResults = [];
+
+    data.questions.forEach((q) => {
+      const userAnswer = userAnswers[q.id];
+      const isCorrect = q.correct_answer.toLowerCase() === (userAnswer || '').toLowerCase();
+      if (isCorrect) score++;
+      detailedResults.push({
+        id: q.id,
+        userAnswer,
+        correctAnswer: q.correct_answer,
+        isCorrect
+      });
+    });
+
+    return {
+      score,
+      totalQuestions,
+      percentage: (score / totalQuestions) * 100,
+      detailedResults
+    };
+  }
+}

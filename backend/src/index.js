@@ -6,22 +6,24 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 
 // Import routes
-import speakingQuestions from '../routes/speakingQuestions.js';
-import jwtAuth from '../routes/jwtAuth.js';
-import processAudio from '../routes/processAudio.js';
-import writingTask2Questions from '../routes/writingTask2Questions.js';
-import writingTask1Questions from '../routes/writingTask1Questions.js';
-import processEssay from '../routes/processEssay.js';
-import adminRoutes from '../routes/adminRoutes.js';
-import processEssayTask1 from '../routes/processEssayTask1.js';
-import processTranscription from '../routes/processTranscription.js';
-import UserData from '../routes/userData.js';
+import speakingQuestions from '../routes/speakingRoutes/speakingQuestions.js';
+import jwtAuth from '../routes/adminRoutes/jwtAuth.js';
+import processAudio from '../routes/speakingRoutes/processAudio.js';
+import writingTask2Questions from '../routes/writingRoutes/writingTask2Questions.js';
+import writingTask1Questions from '../routes/writingRoutes/writingTask1Questions.js';
+import processEssay from '../routes/writingRoutes/processEssay.js';
+import adminRoutes from '../routes/adminRoutes/adminRoutes.js';
+import processEssayTask1 from '../routes/writingRoutes/processEssayTask1.js';
+import processTranscription from '../routes/speakingRoutes/processTranscription.js';
+import UserData from '../routes/adminRoutes/userData.js';
 import advancedVocabularyAnalysis from '../routes/vocabRoutes/advancedVocabularyAnalysis.js';
 import lexicalDensity from '../routes/vocabRoutes/lexicalDensity.js';
 import repeatedWords from '../routes/vocabRoutes/repeatedWords.js';
 import rareWords from '../routes/vocabRoutes/rareWords.js';
 import misSpellings from '../routes/vocabRoutes/misSpellings.js';
-import getEssays from '../routes/getEssays.js';
+import getEssays from '../routes/adminRoutes/getEssays.js';
+import listeningQuestions from '../routes/listeningRoutes/listeningQuestions.js';
+import readingQuestions from '../routes/readingRoutes/readingQuestions.js';
 
 
 
@@ -72,7 +74,9 @@ app.use('/rareWords', rareWords);
 app.use('/advancedVocabulary', advancedVocabularyAnalysis);
 app.use('/lexicalDensity', lexicalDensity);
 app.use('/repeatedWords', repeatedWords);
+app.use('/readingQuestions', readingQuestions);
 app.use('/getEssays', getEssays);
+app.use('/listeningQuestions', listeningQuestions);
 
 // Start the server
 app.listen(PORT, () => {
