@@ -1,10 +1,12 @@
-import pool from '../../db.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import pool from '../../db.js';
 
+// Helper to resolve directory name
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Get available test IDs
 export const getAvailableTestIds = async (req, res) => {
   try {
     const query = 'SELECT DISTINCT audio_recording_id FROM listening_questions ORDER BY audio_recording_id';
@@ -18,6 +20,7 @@ export const getAvailableTestIds = async (req, res) => {
   }
 };
 
+// Get listening test data
 export const getListeningTest = async (req, res) => {
   const { testId } = req.params;
   try {
@@ -54,6 +57,7 @@ export const getListeningTest = async (req, res) => {
   }
 };
 
+// Get listening image
 export const getListeningImage = async (req, res) => {
   const { audioRecordingId, section } = req.params;
   try {
@@ -61,38 +65,36 @@ export const getListeningImage = async (req, res) => {
     const { rows } = await pool.query(query, [audioRecordingId, section]);
 
     if (rows.length === 0) {
-      return res.status(404).json({ message: 'Image not found in database' });
+      return res.status(404).json({ message: 'Image not found' });
     }
 
-    // Remove the extra 'backend' from the path if it exists
-    const dbImagePath = rows[0].image_path.replace(/^backend\//, '');
+    const imagePath = path.join(__dirname, '../../../', rows[0].image_path);
     
-    // Construct the full path
-    const imagePath = path.join(__dirname, '..', '..', dbImagePath);
-
-    // Check if the file exists
-    try {
-      await fs.access(imagePath);
-    } catch (error) {
-      console.error('File does not exist:', imagePath);
-      return res.status(404).json({ message: 'Image file not found on server' });
-    }
-
-    // Log the full path for debugging
-    console.log('Attempting to send file:', imagePath);
-
     res.sendFile(imagePath, (err) => {
       if (err) {
-        console.error('Error sending file:', err);
-        res.status(500).json({ message: 'Error sending image file', error: err.message });
+        if (err.code === 'EPIPE') {
+          console.error('Client closed the connection prematurely:', err);
+        } else {
+          console.error('Error sending file:', err);
+
+          // Ensure headers haven't been sent before attempting to send an error response
+          if (!res.headersSent) {
+            res.status(500).json({ message: 'Error sending image file' });
+          }
+        }
       }
     });
   } catch (error) {
     console.error('Error fetching image:', error);
-    res.status(500).json({ message: 'Internal server error', error: error.message });
+
+    // Ensure headers haven't been sent before attempting to send an error response
+    if (!res.headersSent) {
+      res.status(500).json({ message: 'Internal server error' });
+    }
   }
 };
 
+// Get listening audio
 export const getListeningAudio = async (req, res) => {
   const { audioRecordingId } = req.params;
   try {
@@ -100,38 +102,36 @@ export const getListeningAudio = async (req, res) => {
     const { rows } = await pool.query(query, [audioRecordingId]);
 
     if (rows.length === 0) {
-      return res.status(404).json({ message: 'Audio not found in database' });
+      return res.status(404).json({ message: 'Audio not found' });
     }
 
-    // Remove the extra 'backend' from the path if it exists
-    const dbAudioPath = rows[0].file_path.replace(/^backend\//, '');
+    const audioPath = path.join(__dirname, '../../../', rows[0].file_path);
     
-    // Construct the full path
-    const audioPath = path.join(__dirname, '..', '..', dbAudioPath);
-
-    // Check if the file exists
-    try {
-      await fs.access(audioPath);
-    } catch (error) {
-      console.error('File does not exist:', audioPath);
-      return res.status(404).json({ message: 'Audio file not found on server' });
-    }
-
-    // Log the full path for debugging
-    console.log('Attempting to send file:', audioPath);
-
     res.sendFile(audioPath, (err) => {
       if (err) {
-        console.error('Error sending file:', err);
-        res.status(500).json({ message: 'Error sending audio file', error: err.message });
+        if (err.code === 'EPIPE') {
+          console.error('Client closed the connection prematurely:', err);
+        } else {
+          console.error('Error sending file:', err);
+
+          // Ensure headers haven't been sent before attempting to send an error response
+          if (!res.headersSent) {
+            res.status(500).json({ message: 'Error sending audio file' });
+          }
+        }
       }
     });
   } catch (error) {
     console.error('Error fetching audio:', error);
-    res.status(500).json({ message: 'Internal server error', error: error.message });
+
+    // Ensure headers haven't been sent before attempting to send an error response
+    if (!res.headersSent) {
+      res.status(500).json({ message: 'Internal server error' });
+    }
   }
 };
 
+// Submit listening test
 export const submitListeningTest = async (req, res) => {
   const { testId } = req.params;
   const { userAnswers } = req.body;

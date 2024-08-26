@@ -11,7 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Play, Pause, SkipBack, SkipForward, Volume2, BarChart2, AlertTriangle, CheckCircle2, XCircle } from 'lucide-react';
+import { Play, Pause, SkipBack, SkipForward, BarChart2, AlertTriangle, CheckCircle2 } from 'lucide-react';
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
 
@@ -21,11 +21,19 @@ const LoadingSpinner = () => (
   </div>
 );
 
-const AudioPlayer = ({ src }) => {
+const AudioPlayer = ({ audioId }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const audioRef = useRef(null);
+
+  useEffect(() => {
+    const audioUrl = `${BACKEND_URL}/listeningQuestions/audio/${audioId}`;
+    if (audioRef.current) {
+      audioRef.current.src = audioUrl;
+      audioRef.current.load();
+    }
+  }, [audioId]);
 
   const togglePlayPause = () => {
     if (audioRef.current) {
@@ -70,26 +78,11 @@ const AudioPlayer = ({ src }) => {
     }
   };
 
-  useEffect(() => {
-    const audioUrl = `${BACKEND_URL}${src}`;
-    console.log('Audio URL:', audioUrl);
-    
-    fetch(audioUrl)
-      .then(response => {
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
-        }
-        console.log('Audio file is accessible');
-      })
-      .catch(error => console.error('Error accessing audio file:', error));
-  }, [src]);
-
   return (
     <Card>
       <CardContent className="p-6">
         <audio
           ref={audioRef}
-          src={`${BACKEND_URL}${src}`}
           onTimeUpdate={handleTimeUpdate}
           onLoadedMetadata={handleLoadedMetadata}
           onError={(e) => console.error('Audio loading error:', e)}
@@ -125,7 +118,7 @@ const AudioPlayer = ({ src }) => {
   );
 };
 
-const QuestionCard = ({ question, userAnswer, showResult, onAnswer }) => {
+const QuestionCard = ({ question, userAnswer, showResult, onAnswer, sequenceNumber }) => {
   const renderQuestionContent = () => {
     const data = typeof question.data === 'string' ? JSON.parse(question.data) : question.data;
     switch (question.type) {
@@ -161,31 +154,6 @@ const QuestionCard = ({ question, userAnswer, showResult, onAnswer }) => {
             />
           </div>
         );
-      case 'map_plan_diagram_labelling':
-        return (
-          <div className="space-y-4">
-            {question.image_url && (
-              <>
-                <img 
-                  src={`${BACKEND_URL}${question.image_url}`}
-                  alt="Map or diagram to label"
-                  className="w-full h-auto rounded-lg shadow-md mb-4"
-                  onError={(e) => {
-                    console.error('Image loading error:', e);
-                    e.target.src = '/placeholder.svg?height=300&width=400';
-                  }}
-                />
-                <p className="text-sm text-gray-500">Image URL: {`${BACKEND_URL}${question.image_url}`}</p>
-              </>
-            )}
-            <Input
-              value={userAnswer || ''}
-              onChange={(e) => onAnswer(question.id, e.target.value)}
-              placeholder="Enter label"
-              className="w-full"
-            />
-          </div>
-        );
       case 'form_table_flowchart_note_summary_completion':
       case 'sentence_completion':
       case 'short_answer':
@@ -214,7 +182,7 @@ const QuestionCard = ({ question, userAnswer, showResult, onAnswer }) => {
   return (
     <Card className="mb-4">
       <CardContent className="p-4">
-        <h3 className="text-lg font-semibold mb-2">{data.question}</h3>
+        <h3 className="text-lg font-semibold mb-2">{`${sequenceNumber}. ${data.question}`}</h3>
         {renderQuestionContent()}
         {showResult && (
           <div className={`mt-2 p-2 rounded-md ${userAnswer?.toLowerCase() === data.correct_answer.toLowerCase() ? 'bg-green-100' : 'bg-red-100'}`}>
@@ -303,7 +271,7 @@ const ScoreOverview = ({ sectionScores, totalScore, onClose, testNumber }) => {
   );
 };
 
-export default function Component() {
+export default function ListeningPractice() {
   const { testId } = useParams();
   const [testData, setTestData] = useState(null);
   const [userAnswers, setUserAnswers] = useState({});
@@ -366,7 +334,9 @@ export default function Component() {
       newSectionScores[sectionIndex] = sectionScore;
       setSectionScores(newSectionScores);
 
-      const newTotalScore = newSectionScores.reduce((a, b) => a + b, 0);
+      const newTotalScore = newSectionScores.reduce((a, b) => a + b,
+
+ 0);
       setTotalScore(newTotalScore);
     }
   };
@@ -385,16 +355,32 @@ export default function Component() {
 
   const renderSection = (sectionIndex) => {
     if (!testData) return null;
-    const section = testData.questions.filter(q => q.section === sectionIndex);
+    const sectionQuestions = testData.questions.filter(q => q.section === sectionIndex);
+
+    const firstImageQuestion = sectionQuestions.find(q => q.type === 'map_plan_diagram_labelling' && q.image_id);
+    const sequenceStart = (sectionIndex - 1) * 10 + 1;
+
     return (
       <div className="space-y-4">
-        {section.map((question) => (
+        {firstImageQuestion && (
+          <img 
+            src={`${BACKEND_URL}/listeningQuestions/image/${firstImageQuestion.audio_recording_id}/${firstImageQuestion.section}`}
+            alt="Map or diagram to label"
+            className="w-full h-auto rounded-lg shadow-md mb-4"
+            onError={(e) => {
+              console.error('Image loading error:', e);
+              e.target.src = '/placeholder.svg?height=300&width=400';
+            }}
+          />
+        )}
+        {sectionQuestions.map((question, index) => (
           <QuestionCard
             key={question.id}
             question={question}
             userAnswer={userAnswers[question.id] || ''}
             showResult={showResults[sectionIndex - 1]}
             onAnswer={handleAnswer}
+            sequenceNumber={sequenceStart + index}
           />
         ))}
         <Button 
@@ -430,10 +416,7 @@ export default function Component() {
       <div className="grid grid-cols-12 gap-8">
         <div className="col-span-3 space-y-6">
           {testData && testData.audio && (
-            <>
-              <AudioPlayer src={testData.audio.file_path} />
-              <p className="text-sm text-gray-500">Audio file path: {testData.audio.file_path}</p>
-            </>
+            <AudioPlayer audioId={testData.audio.id} />
           )}
           <Card>
             <CardHeader>

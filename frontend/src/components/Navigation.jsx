@@ -120,7 +120,7 @@ export default function Navigation() {
                   <ListItem href="/VocabularyStatistics" title="Vocabulary Insights" icon={<BookMarked className="h-4 w-4 mr-2" />}>
                     Analyze your vocabulary usage
                   </ListItem>
-                  <ListItem href="/PracticeVocabulary" title="Practice Vocabulary" icon={<Lightbulb className="h-4 w-4 mr-2" />}>
+                  <ListItem href="/VocabularyPracticeIntro" title="Practice Vocabulary" icon={<Lightbulb className="h-4 w-4 mr-2" />}>
                     Expand your vocabulary
                   </ListItem>
                 </ul>
