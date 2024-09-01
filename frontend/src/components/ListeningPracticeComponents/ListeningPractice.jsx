@@ -101,17 +101,16 @@ const AudioPlayer = ({ audioId }) => {
           </div>
           <div className="flex items-center space-x-2">
             <span className="text-sm font-medium">{formatTime(currentTime)}</span>
-            <Progress value={(currentTime / duration) * 100} className="flex-grow" />
+            <input
+              type="range"
+              min="0"
+              max={duration}
+              value={currentTime}
+              onChange={handleSeek}
+              className="w-full"
+            />
             <span className="text-sm font-medium">{formatTime(duration)}</span>
           </div>
-          <input
-            type="range"
-            min="0"
-            max={duration}
-            value={currentTime}
-            onChange={handleSeek}
-            className="w-full"
-          />
         </div>
       </CardContent>
     </Card>
@@ -200,8 +199,8 @@ const QuestionCard = ({ question, userAnswer, showResult, onAnswer, sequenceNumb
 
 const ScoreOverview = ({ sectionScores, totalScore, onClose, testNumber }) => {
   const maxScore = 40;
-  const percentage = (totalScore / maxScore) * 100;
-  const bandScore = (totalScore / maxScore) * 9;
+  const rawTotalScore = sectionScores.reduce((a, b) => a + b, 0);
+  const percentage = (rawTotalScore / maxScore) * 100;
 
   const getScoreColor = (score) => {
     if (score >= 8) return "text-green-500";
@@ -228,10 +227,10 @@ const ScoreOverview = ({ sectionScores, totalScore, onClose, testNumber }) => {
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ delay: 0.2, type: "spring", stiffness: 200, damping: 10 }}
-              className={`inline-flex items-center justify-center w-40 h-40 rounded-full border-8 ${getScoreColor(bandScore)} bg-white`}
+              className={`inline-flex items-center justify-center w-40 h-40 rounded-full border-8 ${getScoreColor(totalScore)} bg-white`}
             >
-              <span className={`text-5xl font-bold ${getScoreColor(bandScore)}`}>
-                {bandScore.toFixed(1)}
+              <span className={`text-5xl font-bold ${getScoreColor(totalScore)}`}>
+                {totalScore.toFixed(1)}
               </span>
             </motion.div>
             <p className="mt-2 text-xl font-semibold">Band Score</p>
@@ -256,11 +255,11 @@ const ScoreOverview = ({ sectionScores, totalScore, onClose, testNumber }) => {
           <Separator />
           <div className="flex justify-between items-center">
             <div>
-              <h3 className="text-xl font-semibold">Total Score</h3>
+              <h3 className="text-xl font-semibold">Total Raw Score</h3>
               <p className="text-sm text-gray-600">Out of 40 questions</p>
             </div>
             <div className="text-right">
-              <p className="text-3xl font-bold">{totalScore}/{maxScore}</p>
+              <p className="text-3xl font-bold">{rawTotalScore}/{maxScore}</p>
               <p className="text-sm text-gray-600">{percentage.toFixed(1)}% correct</p>
             </div>
           </div>
@@ -281,6 +280,9 @@ export default function ListeningPractice() {
   const [showScoreOverview, setShowScoreOverview] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [currentSection, setCurrentSection] = useState("section1");
+  const [showUnansweredWarning, setShowUnansweredWarning] = useState(false);
+  const [unansweredQuestions, setUnansweredQuestions] = useState(0);
 
   useEffect(() => {
     const fetchTestData = async () => {
@@ -322,34 +324,82 @@ export default function ListeningPractice() {
     }, 0);
   };
 
-  const handleCheckAnswers = (sectionIndex) => {
-    const newShowResults = [...showResults];
-    newShowResults[sectionIndex] = true;
-    setShowResults(newShowResults);
-
+  const handleCalculateFinalScore = () => {
     if (testData) {
-      const sectionQuestions = testData.questions.filter(q => q.section === sectionIndex + 1);
-      const sectionScore = calculateScore(sectionQuestions);
-      const newSectionScores = [...sectionScores];
-      newSectionScores[sectionIndex] = sectionScore;
-      setSectionScores(newSectionScores);
+      const unanswered = testData.questions.filter(q => !userAnswers[q.id]).length;
+      setUnansweredQuestions(unanswered);
 
-      const newTotalScore = newSectionScores.reduce((a, b) => a + b,
-
- 0);
-      setTotalScore(newTotalScore);
+      if (unanswered > 0) {
+        setShowUnansweredWarning(true);
+      } else {
+        calculateAndShowFinalScore();
+      }
     }
   };
 
-  const handleCalculateFinalScore = () => {
-    if (testData) {
-      testData.questions.forEach((question, index) => {
-        const sectionIndex = Math.floor(index / 10);
-        if (!showResults[sectionIndex]) {
-          handleCheckAnswers(sectionIndex);
-        }
-      });
-      setShowScoreOverview(true);
+  const calculateIELTSBandScore = (rawScore) => {
+    if (rawScore >= 39) return 9;
+    if (rawScore >= 37) return 8.5;
+    if (rawScore >= 35) return 8;
+    if (rawScore >= 32) return 7.5;
+    if (rawScore >= 30) return 7;
+    if (rawScore >= 26) return 6.5;
+    if (rawScore >= 23) return 6;
+    if (rawScore >= 18) return 5.5;
+    if (rawScore >= 16) return 5;
+    if (rawScore >= 13) return 4.5;
+    if (rawScore >= 10) return 4;
+    if(rawScore >= 8) return 3.5;
+    if(rawScore >= 6) return 3;
+    if(rawScore >= 4) return 2.5;
+    if(rawScore >= 2) return 2;
+    if(rawScore >= 1) return 1;
+    if(rawScore >= 0) return 0;
+    return 0; // For scores below 11
+  };
+
+  const calculateAndShowFinalScore = () => {
+    const newSectionScores = testData.questions.reduce((scores, question) => {
+      const sectionIndex = question.section - 1;
+      const data = typeof question.data === 'string' ? JSON.parse(question.data) : question.data;
+      if (userAnswers[question.id]?.toLowerCase() === data.correct_answer.toLowerCase()) {
+        scores[sectionIndex]++;
+      }
+      return scores;
+    }, [0, 0, 0, 0]);
+
+    setSectionScores(newSectionScores);
+    const rawTotalScore = newSectionScores.reduce((a, b) => a + b, 0);
+    const ieltsScore = calculateIELTSBandScore(rawTotalScore);
+    setTotalScore(ieltsScore);
+    setShowScoreOverview(true);
+  };
+
+  const handleCheckAnswers = (sectionIndex) => {
+    const newShowResults = [...showResults];
+    newShowResults[sectionIndex] = !newShowResults[sectionIndex]; // Toggle the value
+    setShowResults(newShowResults);
+
+    if (newShowResults[sectionIndex]) {
+      // Only calculate score if we're showing results
+      if (testData) {
+        const sectionQuestions = testData.questions.filter(q => q.section === sectionIndex + 1);
+        const sectionScore = calculateScore(sectionQuestions);
+        const newSectionScores = [...sectionScores];
+        newSectionScores[sectionIndex] = sectionScore;
+        setSectionScores(newSectionScores);
+
+        const newTotalScore = newSectionScores.reduce((a, b) => a + b, 0);
+        setTotalScore(newTotalScore);
+      }
+    }
+  };
+
+  const handleNextPart = () => {
+    const currentIndex = parseInt(currentSection.slice(-1));
+    if (currentIndex < 4) {
+      const nextSection = `section${currentIndex + 1}`;
+      setCurrentSection(nextSection);
     }
   };
 
@@ -357,38 +407,72 @@ export default function ListeningPractice() {
     if (!testData) return null;
     const sectionQuestions = testData.questions.filter(q => q.section === sectionIndex);
 
-    const firstImageQuestion = sectionQuestions.find(q => q.type === 'map_plan_diagram_labelling' && q.image_id);
+    // Group questions by image_id
+    const groupedQuestions = sectionQuestions.reduce((acc, question) => {
+      const key = question.image_id || 'no_image';
+      if (!acc[key]) {
+        acc[key] = [];
+      }
+      acc[key].push(question);
+      return acc;
+    }, {});
+
     const sequenceStart = (sectionIndex - 1) * 10 + 1;
 
     return (
-      <div className="space-y-4">
-        {firstImageQuestion && (
-          <img 
-            src={`${BACKEND_URL}/listeningQuestions/image/${firstImageQuestion.audio_recording_id}/${firstImageQuestion.section}`}
-            alt="Map or diagram to label"
-            className="w-full h-auto rounded-lg shadow-md mb-4"
-            onError={(e) => {
-              console.error('Image loading error:', e);
-              e.target.src = '/placeholder.svg?height=300&width=400';
-            }}
-          />
-        )}
-        {sectionQuestions.map((question, index) => (
-          <QuestionCard
-            key={question.id}
-            question={question}
-            userAnswer={userAnswers[question.id] || ''}
-            showResult={showResults[sectionIndex - 1]}
-            onAnswer={handleAnswer}
-            sequenceNumber={sequenceStart + index}
-          />
+      <div className="space-y-8">
+        {Object.entries(groupedQuestions).map(([imageId, questions], groupIndex) => (
+          <Card key={imageId} className="p-4">
+            <CardContent className="space-y-4">
+              {imageId !== 'no_image' && (
+                <img 
+                  src={`${BACKEND_URL}/listeningQuestions/image/${questions[0].audio_recording_id}/${questions[0].section}`}
+                  alt="Map or diagram to label"
+                  className="w-full h-auto rounded-lg shadow-md mb-4"
+                  onError={(e) => {
+                    console.error('Image loading error:', e);
+                    e.target.src = '/placeholder.svg?height=300&width=400';
+                  }}
+                />
+              )}
+              {questions.map((question, index) => (
+                <QuestionCard
+                  key={question.id}
+                  question={question}
+                  userAnswer={userAnswers[question.id] || ''}
+                  showResult={showResults[sectionIndex - 1]}
+                  onAnswer={handleAnswer}
+                  sequenceNumber={sequenceStart + groupIndex * questions.length + index}
+                />
+              ))}
+            </CardContent>
+          </Card>
         ))}
-        <Button 
-          onClick={() => handleCheckAnswers(sectionIndex - 1)}
-          className="w-full"
-        >
-          Check Answers
-        </Button>
+        <div className="flex justify-between items-center mt-6">
+          <div className="w-1/4"></div>
+          {sectionIndex === 4 ? (
+            <Button 
+              onClick={handleCalculateFinalScore}
+              className="w-1/3 bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded shadow transition duration-200 hover:shadow-md"
+            >
+              Calculate Final Score
+            </Button>
+          ) : (
+            <Button 
+              onClick={handleNextPart}
+              className="w-1/4"
+            >
+              Next Part
+            </Button>
+          )}
+          <Button 
+            onClick={() => handleCheckAnswers(sectionIndex - 1)}
+            variant={showResults[sectionIndex - 1] ? "default" : "outline"}
+            className="w-1/4"
+          >
+            {showResults[sectionIndex - 1] ? "Hide Answers" : "Check Answers"}
+          </Button>
+        </div>
       </div>
     );
   };
@@ -405,13 +489,10 @@ export default function ListeningPractice() {
     return <div className="text-center">No test data available.</div>;
   }
 
-  const unansweredQuestions = testData.questions.filter(q => !userAnswers[q.id]).length;
-
   return (
     <div className="container mx-auto p-8 max-w-screen-xl">
       <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-800">IELTS Listening Test {testData.audio.id}</h1>
-        <p className="text-xl text-gray-600 mt-2">Complete all sections to get your score</p>
+        <h1 className="text-3xl font-bold text-gray-800">Listening Practice Test {testData.audio.id}</h1>
       </div>
       <div className="grid grid-cols-12 gap-8">
         <div className="col-span-3 space-y-6">
@@ -432,41 +513,9 @@ export default function ListeningPractice() {
               </ul>
             </CardContent>
           </Card>
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button className="w-full bg-teal-600 hover:bg-teal-700 text-white">
-                <BarChart2 className="mr-2 h-4 w-4" />
-                Calculate Final Score
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Calculate Final Score for Test {testData.audio.id}</AlertDialogTitle>
-                <AlertDialogDescription>
-                  {unansweredQuestions > 0 ? (
-                    <>
-                      <AlertTriangle className="h-6 w-6 text-yellow-500 inline-block mr-2" />
-                      You have {unansweredQuestions} unanswered questions. Are you sure you want to calculate your final score?
-                    </>
-                  ) : (
-                    <>
-                      <CheckCircle2 className="h-6 w-6 text-green-500 inline-block mr-2" />
-                      All questions have been answered. Do you want to calculate your final score?
-                    </>
-                  )}
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction onClick={handleCalculateFinalScore}>
-                  Calculate Score
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
         </div>
         <div className="col-span-9">
-          <Tabs defaultValue="section1" className="w-full">
+          <Tabs value={currentSection} onValueChange={setCurrentSection} className="w-full">
             <TabsList className="grid w-full grid-cols-4 mb-6">
               <TabsTrigger value="section1">Part 1</TabsTrigger>
               <TabsTrigger value="section2">Part 2</TabsTrigger>
@@ -492,6 +541,25 @@ export default function ListeningPractice() {
           />
         )}
       </AnimatePresence>
+      <AlertDialog open={showUnansweredWarning} onOpenChange={setShowUnansweredWarning}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Unanswered Questions</AlertDialogTitle>
+            <AlertDialogDescription>
+              You have {unansweredQuestions} unanswered question{unansweredQuestions > 1 ? 's' : ''}. Are you sure you want to calculate your final score?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Go Back</AlertDialogCancel>
+            <AlertDialogAction onClick={() => {
+              setShowUnansweredWarning(false);
+              calculateAndShowFinalScore();
+            }}>
+              Calculate Anyway
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

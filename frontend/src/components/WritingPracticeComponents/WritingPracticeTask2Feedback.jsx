@@ -74,8 +74,8 @@ export default function Feedback() {
       fetch('http://localhost:3000/essay/processEssay', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({ prompt, response }),
       })

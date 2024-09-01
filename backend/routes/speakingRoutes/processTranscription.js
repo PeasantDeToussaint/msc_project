@@ -26,7 +26,7 @@ router.post('/processTranscription', async (req, res) => {
 
   try {
     const completion = await openai.chat.completions.create({
-      model: 'gpt-4',
+      model: 'gpt-4o-mini',
       messages: [
         { role: 'system', content: promptContent },
         { role: 'user', content: `Transcribed Text: ${transcription}\n` },

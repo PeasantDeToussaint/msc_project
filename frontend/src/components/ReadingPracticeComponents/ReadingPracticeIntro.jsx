@@ -133,7 +133,7 @@ export default function ReadingPracticeIntro() {
       <div className="w-full max-w-4xl space-y-12 relative z-10">
         <animated.div style={headerAnimation} className="text-center">
           <BookOpen className="mx-auto h-16 w-16 text-indigo-600" />
-          <h1 className="mt-6 text-4xl font-extrabold text-white">Answer the following questions to improve your reading skills</h1>
+          <h1 className="mt-6 text-4xl font-extrabold text-white">Select a type of question to practice!</h1>
           <p className="mt-2 text-xl text-gray-200">
             Customize your practice session by selecting specific question types or generate a random set.
           </p>
