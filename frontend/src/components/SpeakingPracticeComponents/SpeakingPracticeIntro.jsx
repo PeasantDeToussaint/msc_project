@@ -53,7 +53,7 @@ export default function TopicSelection() {
       >
         <Card className="bg-white shadow-lg overflow-hidden border-t-4 border-blue-500">
           <CardHeader className="bg-stone-50 border-b border-stone-200">
-            <CardTitle className="text-3xl font-bold tracking-tight sm:text-4xl text-center text-stone-800">IELTS Speaking Practice</CardTitle>
+            <CardTitle className="text-3xl font-bold tracking-tight sm:text-4xl text-center text-stone-800">Speaking Practice</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6 p-6">
             <div className="space-y-4">

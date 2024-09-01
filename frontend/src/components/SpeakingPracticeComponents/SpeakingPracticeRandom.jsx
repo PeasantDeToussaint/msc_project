@@ -15,6 +15,7 @@ import { Label } from "@/components/ui/label"
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
+import { convertWebmToWav } from '../../lib/audioConverter'
 
 const topics = {
   part1: [
@@ -243,38 +244,38 @@ export default function Component() {
 
   const fetchQuestions = useCallback(async (topicsToFetch = null) => {
     try {
-      const endpoint = topicsToFetch ? 'http://localhost:3000/speakingQuestions/selected-questions' : 'http://localhost:3000/speakingQuestions/random-questions'
-      const method = topicsToFetch ? 'POST' : 'GET'
-      const body = topicsToFetch ? JSON.stringify(topicsToFetch) : undefined
-      const headers = topicsToFetch ? { 'Content-Type': 'application/json' } : undefined
+      const endpoint = topicsToFetch ? 'http://localhost:3000/speakingQuestions/selected-questions' : 'http://localhost:3000/speakingQuestions/random-questions';
+      const method = topicsToFetch ? 'POST' : 'GET';
+      const body = topicsToFetch ? JSON.stringify(topicsToFetch) : undefined;
+      const headers = topicsToFetch ? { 'Content-Type': 'application/json' } : undefined;
 
-      const response = await fetch(endpoint, { method, body, headers })
+      const response = await fetch(endpoint, { method, body, headers });
 
       if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`)
+        throw new Error(`HTTP error! Status: ${response.status}`);
       }
 
-      const data = await response.json()
+      const data = await response.json();
       setQuestions({
-        part1: data.part1[0],
-        part2: data.part2[0],
-        part3: data.part3[0]
-      })
-      setTranscription('')
-      setFeedback(null)
+        part1: data.part1[0] || null,
+        part2: data.part2[0] || null,
+        part3: data.part3[0] || null,
+      });
+      setTranscription('');
+      setFeedback(null);
     } catch (error) {
-      console.error('Error fetching questions:', error)
+      console.error('Error fetching questions:', error);
       toast({
         title: 'Error',
         description: `Failed to fetch questions: ${error.message}`,
-        variant: 'destructive'
-      })
+        variant: 'destructive',
+      });
     }
-  }, [toast])
+  }, [toast]);
 
   useEffect(() => {
-    fetchQuestions()
-  }, [fetchQuestions])
+    fetchQuestions();
+  }, [fetchQuestions]);
 
   const handleRecordClick = async () => {
     if (isRecording) {
@@ -303,10 +304,15 @@ export default function Component() {
       return
     }
 
-    const formData = new FormData()
-    formData.append('audio', audioBlob, 'audio.wav')
-
     try {
+      console.log('Starting conversion to WAV')
+      const wavBlob = await convertWebmToWav(audioBlob)
+      console.log("WAV Blob size:", wavBlob.size)
+      console.log('Conversion to WAV completed')
+
+      const formData = new FormData()
+      formData.append('audio', wavBlob, 'audio.wav')
+
       const response = await fetch('http://localhost:3000/audio/process-audio', {
         method: 'POST',
         body: formData
@@ -322,7 +328,7 @@ export default function Component() {
 
         // Fetch feedback using the transcribed text
         const feedbackResponse = await fetch('http://localhost:3000/transcription/processTranscription', {
-          metho: 'POST',
+          method: 'POST',
           headers: {
             'Content-Type': 'application/json'
           },
@@ -341,9 +347,11 @@ export default function Component() {
         }
 
       } else {
-        throw new Error(`HTTP error! Status: ${response.status}`)
+        const errorText = await response.text()
+        throw new Error(`HTTP error! Status: ${response.status}, Message: ${errorText}`)
       }
     } catch (error) {
+      console.error('Error processing audio:', error)
       toast({
         title: 'Error',
         description: `Failed to process audio: ${error.message}`,
@@ -368,16 +376,19 @@ export default function Component() {
     });
   }
 
-  const handleApplyTopics = () => {
-    if (selectedTopics.part1.length < 1 || selectedTopics.part2.length < 1 || selectedTopics.part3.length < 1) {
-      toast({
-        title: "Selection Error",
-        description: "You must choose at least one topic from each section.",
-        variant: "destructive"
-      });
+  const handleApplyTopics = (closeSheet) => {
+    const hasSelectedTopics = Object.values(selectedTopics).some(part => part.length > 0);
+    if (hasSelectedTopics) {
+      const topicsToFetch = {
+        part1: selectedTopics.part1.length > 0 ? selectedTopics.part1 : null,
+        part2: selectedTopics.part2.length > 0 ? selectedTopics.part2 : null,
+        part3: selectedTopics.part3.length > 0 ? selectedTopics.part3 : null,
+      };
+      fetchQuestions(topicsToFetch);
     } else {
-      fetchQuestions(selectedTopics);
+      fetchQuestions();
     }
+    closeSheet();
   }
 
   const handleNewQuestion = () => {
@@ -424,9 +435,11 @@ export default function Component() {
                       onTopicChange={handleTopicChange}
                     />
                   </div>
-                  <Button onClick={handleApplyTopics} className="w-full mt-4">
-                    Apply Topics
-                  </Button>
+                  <SheetTrigger asChild>
+                    <Button onClick={() => handleApplyTopics(() => {})} className="w-full mt-4">
+                      Apply Topics
+                    </Button>
+                  </SheetTrigger>
                 </SheetContent>
               </Sheet>
             </div>

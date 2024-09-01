@@ -23,22 +23,22 @@ router.post('/selected-questions', async (req, res) => {
   try {
     console.log('Received request body:', req.body);
 
-    const selectedPart1 = await pool.query(
+    const selectedPart1 = part1 ? await pool.query(
       'SELECT * FROM speaking_prompts WHERE part_id = 1 AND genre = ANY($1::text[])',
       [part1]
-    );
+    ) : await pool.query('SELECT * FROM speaking_prompts WHERE part_id = 1 ORDER BY RANDOM() LIMIT 2');
     console.log('Part 1 query result:', selectedPart1.rows);
 
-    const selectedPart2 = await pool.query(
+    const selectedPart2 = part2 ? await pool.query(
       'SELECT * FROM speaking_prompts WHERE part_id = 2 AND genre = ANY($1::text[])',
       [part2]
-    );
+    ) : await pool.query('SELECT * FROM speaking_prompts WHERE part_id = 2 ORDER BY RANDOM() LIMIT 2');
     console.log('Part 2 query result:', selectedPart2.rows);
 
-    const selectedPart3 = await pool.query(
+    const selectedPart3 = part3 ? await pool.query(
       'SELECT * FROM speaking_prompts WHERE part_id = 3 AND genre = ANY($1::text[])',
       [part3]
-    );
+    ) : await pool.query('SELECT * FROM speaking_prompts WHERE part_id = 3 ORDER BY RANDOM() LIMIT 2');
     console.log('Part 3 query result:', selectedPart3.rows);
 
     res.json({ part1: selectedPart1.rows, part2: selectedPart2.rows, part3: selectedPart3.rows });
@@ -48,7 +48,7 @@ router.post('/selected-questions', async (req, res) => {
   }
 });
 
-
+// Get all prompts
 router.get('/prompts', async (req, res) => {
   try {
     const result = await pool.query('SELECT * FROM speaking_prompts');

@@ -1,7 +1,6 @@
 import React from 'react';
 import { Route, Routes, Navigate, useLocation } from 'react-router-dom';
 import ListeningPracticeIntro from '../components/ListeningPracticeComponents/ListeningPracticeIntro';
-import SpeakingPractice from '../components/SpeakingPracticeComponents/SpeakingPractice';
 import About from '../components/About';
 import Homepage from '../components/Homepage';
 import RegisterPage from '../components/RegisterPage';
@@ -18,7 +17,6 @@ import WritingPracticeTask2 from '../components/WritingPracticeComponents/Writin
 import WritingPracticeTask2Feedback from '../components/WritingPracticeComponents/WritingPracticeTask2Feedback';
 import ManageTestbank from '../components/ManageTestbank';
 import WritingPracticeTask1Feedback from '../components/WritingPracticeComponents/WritingPracticeTask1Feedback';
-import SpeakingPracticeFeedback from '../components/SpeakingPracticeComponents/SpeakingPracticeFeedback';
 import VocabularyStatistics from '../components/UserPageComponents/VocabularyStatistics';
 import { useAuth } from '../context/authContext';
 import ListeningPractice from '../components/ListeningPracticeComponents/ListeningPractice';
@@ -41,7 +39,6 @@ function MainContent() {
           <Route path="/Homepage" element={isAuthenticated ? <Homepage /> : <Navigate replace to="/LoginPage" />} />
           <Route path="/RegisterPage" element={<RegisterPage />} />
           <Route path="/" element={isAuthenticated ? <Homepage /> : <Navigate replace to="/LoginPage" />} />
-          <Route path="/SpeakingPractice" element={isAuthenticated ? <SpeakingPractice /> : <Navigate replace to="/LoginPage" />} />
           <Route path="/ListeningPracticeIntro" element={isAuthenticated ? <ListeningPracticeIntro /> : <Navigate replace to="/LoginPage" />} />
           <Route path="/about" element={isAuthenticated ? <About /> : <Navigate replace to="/LoginPage" />} />
           <Route path="/contact" element={isAuthenticated ? <ContactPage /> : <Navigate replace to="/LoginPage" />} />
@@ -55,7 +52,6 @@ function MainContent() {
           <Route path="/WritingPracticeTask2Feedback" element={isAuthenticated ? <WritingPracticeTask2Feedback/> : <Navigate replace to="/LoginPage"/>}/>
           <Route path="/WritingPracticeTask1Feedback" element={isAuthenticated ? <WritingPracticeTask1Feedback/> : <Navigate replace to="/LoginPage"/>}/>
           <Route path="/ManageTestbank" element={isAuthenticated ? <ManageTestbank/> : <Navigate replace to="/LoginPage"/>}/>
-          <Route path="/SpeakingPracticeFeedback" element={isAuthenticated?<SpeakingPracticeFeedback/> : <Navigate replace to="/LoginPage"/>}/>
           <Route path="/VocabularyStatistics" element={isAuthenticated?<VocabularyStatistics/> : <Navigate replace to="/LoginPage"/>}/>
           <Route path="/ReadingPracticeIntro" element={isAuthenticated?<ReadingPracticeIntro/> : <Navigate replace to="/LoginPage"/>}/>
           <Route path="/ReadingPractice" element={isAuthenticated ? <ReadingPractice /> : <Navigate replace to="/LoginPage"/>} />
