@@ -1,7 +1,9 @@
+import dotenv from 'dotenv';
+dotenv.config();
+
 import express from 'express';
 import cors from 'cors';
 import bodyParser from 'body-parser';
-import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -25,7 +27,6 @@ import getEssays from '../routes/adminRoutes/getEssays.js';
 import listeningQuestions from '../routes/listeningRoutes/listeningQuestions.js';
 import readingQuestions from '../routes/readingRoutes/readingQuestions.js';
 
-dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -41,8 +42,10 @@ app.use(bodyParser.urlencoded({ extended: true }));
 // Serve static files from the 'uploads' directory
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
-// Serve static files from the 'frontend/build' directory
-app.use(express.static(path.join(__dirname, '../../frontend/dist')));
+// Serve static files from the 'frontend/dist' directory in production
+if (process.env.NODE_ENV === 'production') {
+  app.use(express.static(path.join(__dirname, '../../frontend/dist')));
+}
 
 // Logging middleware to debug requests
 app.use((req, res, next) => {
@@ -75,10 +78,12 @@ app.use('/readingQuestions', readingQuestions);
 app.use('/getEssays', getEssays);
 app.use('/listeningQuestions', listeningQuestions);
 
-// Serve the frontend's index.html for all other routes
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../../frontend/dist', 'index.html'));
-});
+// Serve the frontend's index.html for all other routes in production
+if (process.env.NODE_ENV === 'production') {
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '../../frontend/dist', 'index.html'));
+  });
+}
 
 // Start the server
 app.listen(PORT, () => {
