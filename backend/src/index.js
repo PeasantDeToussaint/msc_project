@@ -42,7 +42,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 // Serve static files from the 'frontend/build' directory
-app.use(express.static(path.join(__dirname, '../../frontend/build')));
+app.use(express.static(path.join(__dirname, '../../frontend/dist')));
 
 // Logging middleware to debug requests
 app.use((req, res, next) => {
@@ -53,10 +53,6 @@ app.use((req, res, next) => {
 app.post('/test', (req, res) => {
   console.log('Test route received:', req.body);
   res.send('Test route is working!');
-});
-
-app.get('/', (req, res) => {
-  res.send('This is the backend page of my project.');
 });
 
 // Use routes
