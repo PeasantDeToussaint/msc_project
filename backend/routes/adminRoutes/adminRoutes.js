@@ -1,5 +1,5 @@
 import express from 'express';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import pool from '../../db.js';  // Adjust the path based on your project structure
 
 const router = express.Router();
