@@ -22,7 +22,7 @@ const credentials = {
 
 
 const upload = multer({ dest: 'uploads/' });
-const speechClient = new SpeechClient(credentials);
+const speechClient = new SpeechClient();
 const router = express.Router();
 
 router.post('/process-audio', upload.single('audio'), async (req, res) => {
