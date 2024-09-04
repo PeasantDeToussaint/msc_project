@@ -4,7 +4,7 @@ import bcrypt from "bcryptjs"; // Updated to bcryptjs
 import pool from "../../db.js";
 import validInfo from "../../middleware/validInfo.js";
 import jwtGenerator from "../../utils/jwtGenerator.js";
-import jwt from 'jsonwebtoken';
+import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 dotenv.config();
 
