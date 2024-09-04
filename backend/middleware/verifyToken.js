@@ -1,4 +1,4 @@
-import pkg from 'jsonwebtoken';
+import pkg from "jsonwebtoken";
 const { verify } = pkg;
 import 'dotenv/config';
 

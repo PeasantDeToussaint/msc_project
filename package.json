@@ -1,21 +1,18 @@
 {
   "name": "yasiman",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
     "start": "node backend/src/index.js",
     "dev": "concurrently \"npm run dev --prefix frontend\" \"npm run start --prefix backend\"",
     "build": "npm run build --prefix frontend",
-    "heroku-postbuild": "npm install --prefix frontend && npm run build --prefix frontend"
+  "heroku-postbuild": "npm install && npm install --prefix frontend && npm run build --prefix frontend && npm install --prefix backend"
   },
   "dependencies": {
-    "autoprefixer": "^10.4.20",
-    "concurrently": "^7.0.0",
-    "vite": "^5.3.1"
+    "concurrently": "^7.0.0"
   },
   "engines": {
-    "node": "20.x",
-    "npm": "10.x"
-  }
+  "node": "22.x"
 }
+  }

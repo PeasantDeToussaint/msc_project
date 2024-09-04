@@ -5,7 +5,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import pool from '../../db.js'; // Import your database connection
 import authorize from '../../middleware/authorize.js'; // Import the authorization middleware
-import jwt from 'jsonwebtoken';
+import jwt from "jsonwebtoken";
 
 // Resolve __filename and __dirname for ESM compatibility
 const __filename = fileURLToPath(import.meta.url);

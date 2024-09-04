@@ -79,11 +79,9 @@ app.use('/getEssays', getEssays);
 app.use('/listeningQuestions', listeningQuestions);
 
 // Serve the frontend's index.html for all other routes in production
-if (process.env.NODE_ENV === 'production') {
-  app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '../../frontend/dist', 'index.html'));
-  });
-}
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../../frontend/dist', 'index.html'));
+});
 
 // Start the server
 app.listen(PORT, () => {

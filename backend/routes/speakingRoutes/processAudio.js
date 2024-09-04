@@ -6,12 +6,12 @@ import util from 'util';
 import path from 'path';
 import wavFileInfo from 'wav-file-info'; // Import wav-file-info
 
-// Set the environment variable for Google Cloud credentials
-const googleCredentials = JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS);
-process.env.GOOGLE_APPLICATION_CREDENTIALS = googleCredentials;
+const credentialsPath = process.env.GOOGLE_APPLICATION_CREDENTIALS;
+const credentials = JSON.parse(fs.readFileSync(path.resolve(credentialsPath), 'utf8'));
+
 
 const upload = multer({ dest: 'uploads/' });
-const speechClient = new SpeechClient();
+const speechClient = new SpeechClient(credentials);
 const router = express.Router();
 
 router.post('/process-audio', upload.single('audio'), async (req, res) => {
