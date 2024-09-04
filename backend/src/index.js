@@ -77,7 +77,7 @@ app.use('/listeningQuestions', listeningQuestions);
 
 // Serve the frontend's index.html for all other routes
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../../frontend/build', 'index.html'));
+  res.sendFile(path.join(__dirname, '../../frontend/dist', 'index.html'));
 });
 
 // Start the server
