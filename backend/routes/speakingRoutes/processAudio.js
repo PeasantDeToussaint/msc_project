@@ -6,7 +6,8 @@ import util from 'util';
 import path from 'path';
 import wavFileInfo from 'wav-file-info'; // Import wav-file-info
 
-const credentials = {
+// Write credentials to a JSON file if not present
+const googleCredentials = {
   type: process.env.GOOGLE_TYPE,
   project_id: process.env.GOOGLE_PROJECT_ID,
   private_key_id: process.env.GOOGLE_PRIVATE_KEY_ID,
@@ -19,10 +20,25 @@ const credentials = {
   client_x509_cert_url: process.env.GOOGLE_CLIENT_X509_CERT_URL
 };
 
+// Write the credentials to a JSON file (if not already done)
+if (!fs.existsSync('google_credentials.json')) {
+  fs.writeFileSync('google_credentials.json', JSON.stringify(googleCredentials, null, 2));
+  console.log('Google credentials file created.');
+}
 
+// Load the credentials from the JSON file
+const Google_Credentials = JSON.parse(fs.readFileSync('google_credentials.json', 'utf8'));
+
+// Initialize the Google Cloud Speech client with the credentials from the JSON file
+const speechClient = new SpeechClient({
+  credentials: {
+    client_email: Google_Credentials.client_email,
+    private_key: Google_Credentials.private_key,
+  },
+  projectId: Google_Credentials.project_id,
+});
 
 const upload = multer({ dest: 'uploads/' });
-const speechClient = new SpeechClient();
 const router = express.Router();
 
 router.post('/process-audio', upload.single('audio'), async (req, res) => {
