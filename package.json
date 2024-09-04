@@ -1,6 +1,7 @@
 {
   "dependencies": {
     "audio-buffer-utils": "^5.1.2",
+    "bcryptjs": "^2.4.3",
     "file-type": "^19.1.0",
     "multer": "^1.4.5-lts.1",
     "openai": "^4.53.2",
