@@ -7,7 +7,8 @@ import path from 'path';
 import wavFileInfo from 'wav-file-info'; // Import wav-file-info
 
 // Set the environment variable for Google Cloud credentials
-process.env.GOOGLE_APPLICATION_CREDENTIALS = "/Users/yuanlin/project-yasiman-613ea398e412.json";
+const googleCredentials = JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS);
+process.env.GOOGLE_APPLICATION_CREDENTIALS = googleCredentials;
 
 const upload = multer({ dest: 'uploads/' });
 const speechClient = new SpeechClient();

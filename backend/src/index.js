@@ -1,84 +1,90 @@
-  import express from 'express';
-  import cors from 'cors';
-  import bodyParser from 'body-parser';
-  import dotenv from 'dotenv';
-  import path from 'path';
-  import { fileURLToPath } from 'url';
+import express from 'express';
+import cors from 'cors';
+import bodyParser from 'body-parser';
+import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-  // Import routes
-  import speakingQuestions from '../routes/speakingRoutes/speakingQuestions.js';
-  import jwtAuth from '../routes/adminRoutes/jwtAuth.js';
-  import processAudio from '../routes/speakingRoutes/processAudio.js';
-  import writingTask2Questions from '../routes/writingRoutes/writingTask2Questions.js';
-  import writingTask1Questions from '../routes/writingRoutes/writingTask1Questions.js';
-  import processEssay from '../routes/writingRoutes/processEssay.js';
-  import adminRoutes from '../routes/adminRoutes/adminRoutes.js';
-  import processEssayTask1 from '../routes/writingRoutes/processEssayTask1.js';
-  import processTranscription from '../routes/speakingRoutes/processTranscription.js';
-  import UserData from '../routes/adminRoutes/userData.js';
-  import advancedVocabularyAnalysis from '../routes/vocabRoutes/advancedVocabularyAnalysis.js';
-  import lexicalDensity from '../routes/vocabRoutes/lexicalDensity.js';
-  import repeatedWords from '../routes/vocabRoutes/repeatedWords.js';
-  import rareWords from '../routes/vocabRoutes/rareWords.js';
-  import misSpellings from '../routes/vocabRoutes/misSpellings.js';
-  import getEssays from '../routes/adminRoutes/getEssays.js';
-  import listeningQuestions from '../routes/listeningRoutes/listeningQuestions.js';
-  import readingQuestions from '../routes/readingRoutes/readingQuestions.js';
+// Import routes
+import speakingQuestions from '../routes/speakingRoutes/speakingQuestions.js';
+import jwtAuth from '../routes/adminRoutes/jwtAuth.js';
+import processAudio from '../routes/speakingRoutes/processAudio.js';
+import writingTask2Questions from '../routes/writingRoutes/writingTask2Questions.js';
+import writingTask1Questions from '../routes/writingRoutes/writingTask1Questions.js';
+import processEssay from '../routes/writingRoutes/processEssay.js';
+import adminRoutes from '../routes/adminRoutes/adminRoutes.js';
+import processEssayTask1 from '../routes/writingRoutes/processEssayTask1.js';
+import processTranscription from '../routes/speakingRoutes/processTranscription.js';
+import UserData from '../routes/adminRoutes/userData.js';
+import advancedVocabularyAnalysis from '../routes/vocabRoutes/advancedVocabularyAnalysis.js';
+import lexicalDensity from '../routes/vocabRoutes/lexicalDensity.js';
+import repeatedWords from '../routes/vocabRoutes/repeatedWords.js';
+import rareWords from '../routes/vocabRoutes/rareWords.js';
+import misSpellings from '../routes/vocabRoutes/misSpellings.js';
+import getEssays from '../routes/adminRoutes/getEssays.js';
+import listeningQuestions from '../routes/listeningRoutes/listeningQuestions.js';
+import readingQuestions from '../routes/readingRoutes/readingQuestions.js';
 
+dotenv.config();
+const app = express();
+const PORT = process.env.PORT || 3000;
 
+// Resolve the directory name dynamically
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-  dotenv.config();
-  const app = express();
-  const PORT = process.env.PORT || 3000;
+// Middleware
+app.use(cors());
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 
-  // Resolve the directory name dynamically
-  const __filename = fileURLToPath(import.meta.url);
-  const __dirname = path.dirname(__filename);
+// Serve static files from the 'uploads' directory
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
-  // Middleware
-  app.use(cors());
-  app.use(bodyParser.json());
-  app.use(bodyParser.urlencoded({ extended: true }));
+// Serve static files from the 'frontend/build' directory
+app.use(express.static(path.join(__dirname, '../../frontend/build')));
 
-  // Serve static files from the 'uploads' directory
-  app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+// Logging middleware to debug requests
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.url}`);
+  next();
+});
 
-  // Logging middleware to debug requests
-  app.use((req, res, next) => {
-    console.log(`${req.method} ${req.url}`);
-    next();
-  });
+app.post('/test', (req, res) => {
+  console.log('Test route received:', req.body);
+  res.send('Test route is working!');
+});
 
-  app.post('/test', (req, res) => {
-    console.log('Test route received:', req.body);
-    res.send('Test route is working!');
-  });
+app.get('/', (req, res) => {
+  res.send('This is the backend page of my project.');
+});
 
-  app.get('/', (req, res) => {
-    res.send('This is the backend page of my project.');
-  });
+// Use routes
+app.use('/authentication', jwtAuth);
+app.use('/speakingQuestions', speakingQuestions);
+app.use('/audio', processAudio);
+app.use('/writingTask2Questions', writingTask2Questions);
+app.use('/essay', processEssay);
+app.use('/essayTask1', processEssayTask1);
+app.use('/admin', adminRoutes);
+app.use('/writingTask1Questions', writingTask1Questions);
+app.use('/transcription', processTranscription);
+app.use('/userdata', UserData);
+app.use('/misSpellings', misSpellings);
+app.use('/rareWords', rareWords);
+app.use('/advancedVocabulary', advancedVocabularyAnalysis);
+app.use('/lexicalDensity', lexicalDensity);
+app.use('/repeatedWords', repeatedWords);
+app.use('/readingQuestions', readingQuestions);
+app.use('/getEssays', getEssays);
+app.use('/listeningQuestions', listeningQuestions);
 
-  // Use routes
-  app.use('/authentication', jwtAuth);
-  app.use('/speakingQuestions', speakingQuestions);
-  app.use('/audio', processAudio);
-  app.use('/writingTask2Questions', writingTask2Questions);
-  app.use('/essay', processEssay);
-  app.use('/essayTask1', processEssayTask1);
-  app.use('/admin', adminRoutes);
-  app.use('/writingTask1Questions', writingTask1Questions);
-  app.use('/transcription', processTranscription);
-  app.use('/userdata', UserData);
-  app.use('/misSpellings', misSpellings);
-  app.use('/rareWords', rareWords);
-  app.use('/advancedVocabulary', advancedVocabularyAnalysis);
-  app.use('/lexicalDensity', lexicalDensity);
-  app.use('/repeatedWords', repeatedWords);
-  app.use('/readingQuestions', readingQuestions);
-  app.use('/getEssays', getEssays);
-  app.use('/listeningQuestions', listeningQuestions);
+// Serve the frontend's index.html for all other routes
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../../frontend/build', 'index.html'));
+});
 
-  // Start the server
-  app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-  });
+// Start the server
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
