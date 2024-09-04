@@ -1,6 +1,6 @@
 import express from "express";
 const router = express.Router();
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs"; // Updated to bcryptjs
 import pool from "../../db.js";
 import validInfo from "../../middleware/validInfo.js";
 import jwtGenerator from "../../utils/jwtGenerator.js";
@@ -9,6 +9,10 @@ import dotenv from "dotenv";
 dotenv.config();
 
 // Authentication
+
+function generateRefreshToken(userId) {
+  return jwt.sign({ id: userId }, process.env.REFRESH_TOKEN_SECRET, { expiresIn: '7d' });
+}
 
 router.post("/register", validInfo, async (req, res) => {
   const { email, name, password } = req.body;
@@ -59,6 +63,7 @@ router.post("/login", validInfo, async (req, res) => {
     if (!validPassword) {
       return res.status(401).json("Invalid Credential");
     }
+
     const jwtToken = jwtGenerator(user.rows[0].user_id);
     return res.json({ jwtToken });
   } catch (err) {
