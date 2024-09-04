@@ -6,8 +6,7 @@ import util from 'util';
 import path from 'path';
 import wavFileInfo from 'wav-file-info'; // Import wav-file-info
 
-const credentialsPath = process.env.GOOGLE_APPLICATION_CREDENTIALS;
-const credentials = JSON.parse(fs.readFileSync(path.resolve(credentialsPath), 'utf8'));
+const credentials =  JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS);
 
 
 const upload = multer({ dest: 'uploads/' });
