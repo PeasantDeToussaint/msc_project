@@ -1,21 +1,19 @@
-'use client'
-
-import React, { useState, useEffect, useCallback } from 'react'
-import { Progress } from "@/components/ui/progress"
-import { Toaster } from "@/components/ui/toaster"
-import { useToast } from "@/components/ui/use-toast"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Mic, Square, RotateCcw, Volume2, Home, Settings } from 'lucide-react'
-import { Badge } from "@/components/ui/badge"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Label } from "@/components/ui/label"
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
-import { useNavigate } from 'react-router-dom'
-import { motion, AnimatePresence } from 'framer-motion'
-import { convertWebmToWav } from '../../lib/audioConverter'
+import React, { useState, useEffect, useCallback } from 'react';
+import { Progress } from "@/components/ui/progress";
+import { Toaster } from "@/components/ui/toaster";
+import { useToast } from "@/components/ui/use-toast";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Mic, Square, RotateCcw, Volume2, Home, Settings, Loader } from 'lucide-react';
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import { convertWebmToWav } from '../../lib/audioConverter';
 
 const topics = {
   part1: [
@@ -52,11 +50,11 @@ const topics = {
   ]
 };
 
-function useAudioRecorder(timeLimitInSeconds) {
-  const [isRecording, setIsRecording] = useState(false)
-  const [timeLeft, setTimeLeft] = useState(timeLimitInSeconds)
-  const [audioBlobs, setAudioBlobs] = useState([])
-  const [capturedStream, setCapturedStream] = useState(null)
+function useAudioRecorder(timeLimitInSeconds, onRecordingStop) {
+  const [isRecording, setIsRecording] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(timeLimitInSeconds);
+  const [audioBlobs, setAudioBlobs] = useState([]);
+  const [capturedStream, setCapturedStream] = useState(null);
 
   const startRecording = useCallback(async () => {
     try {
@@ -64,63 +62,66 @@ function useAudioRecorder(timeLimitInSeconds) {
         audio: {
           echoCancellation: true,
         }
-      })
+      });
 
-      setAudioBlobs([])
-      setCapturedStream(stream)
-      setIsRecording(true)
-      setTimeLeft(timeLimitInSeconds)
+      setAudioBlobs([]);
+      setCapturedStream(stream);
+      setIsRecording(true);
+      setTimeLeft(timeLimitInSeconds);
 
       const recorder = new MediaRecorder(stream, {
         mimeType: 'audio/webm'
-      })
+      });
 
       recorder.addEventListener('dataavailable', event => {
-        setAudioBlobs(prevBlobs => [...prevBlobs, event.data])
-      })
+        setAudioBlobs(prevBlobs => [...prevBlobs, event.data]);
+      });
 
-      recorder.start(1000)
+      recorder.addEventListener('stop', () => {
+        const audioBlob = new Blob(audioBlobs, { type: 'audio/webm' });
+        onRecordingStop(audioBlob);  // Automatically trigger onRecordingStop when recording stops
+      });
+
+      recorder.start(1000);
 
       const timer = setInterval(() => {
         setTimeLeft(prevTime => {
           if (prevTime <= 1) {
-            clearInterval(timer)
-            recorder.stop()
-            setIsRecording(false)
-            return 0
+            clearInterval(timer);
+            recorder.stop();  // This will also trigger the 'stop' event listener
+            setIsRecording(false);
+            return 0;
           }
-          return prevTime - 1
-        })
-      }, 1000)
+          return prevTime - 1;
+        });
+      }, 1000);
 
       return () => {
-        clearInterval(timer)
-        recorder.stop()
-        stream.getTracks().forEach(track => track.stop())
-      }
+        clearInterval(timer);
+        recorder.stop();
+        stream.getTracks().forEach(track => track.stop());
+      };
     } catch (error) {
-      console.error('Error starting recording:', error)
-      throw error
+      console.error('Error starting recording:', error);
+      throw error;
     }
-  }, [timeLimitInSeconds])
+  }, [timeLimitInSeconds, audioBlobs, onRecordingStop]);
 
   const stopRecording = useCallback(() => {
-    return new Promise(resolve => {
-      if (capturedStream) {
-        capturedStream.getTracks().forEach(track => track.stop())
-      }
-      setIsRecording(false)
-      const audioBlob = new Blob(audioBlobs, { type: 'audio/webm' })
-      resolve(audioBlob)
-    })
-  }, [audioBlobs, capturedStream])
+    if (capturedStream) {
+      capturedStream.getTracks().forEach(track => track.stop());
+    }
+    setIsRecording(false);
+    const audioBlob = new Blob(audioBlobs, { type: 'audio/webm' });
+    return audioBlob;
+  }, [audioBlobs, capturedStream]);
 
   return {
     isRecording,
     timeLeft,
     startRecording,
     stopRecording
-  }
+  };
 }
 
 const QuestionCard = ({ question }) => (
@@ -132,7 +133,7 @@ const QuestionCard = ({ question }) => (
       <p className="text-sm font-medium">{question}</p>
     </CardContent>
   </Card>
-)
+);
 
 const RecordingControls = ({ isRecording, onRecord, onStop }) => (
   <div className="flex items-center justify-center gap-4">
@@ -157,14 +158,14 @@ const RecordingControls = ({ isRecording, onRecord, onStop }) => (
       </Button>
     )}
   </div>
-)
+);
 
 const RecordingProgress = ({ timeLeft, totalTime }) => (
   <div className="space-y-4">
     <Progress value={(timeLeft / totalTime) * 100} className="w-full h-2" />
     <p className="text-center text-sm font-medium">{timeLeft} seconds remaining</p>
   </div>
-)
+);
 
 const TranscriptionCard = ({ transcription }) => (
   <Card className="bg-gradient-to-br from-secondary/10 to-primary/10 shadow-lg">
@@ -177,7 +178,7 @@ const TranscriptionCard = ({ transcription }) => (
       </ScrollArea>
     </CardContent>
   </Card>
-)
+);
 
 const FeedbackCard = ({ feedback }) => (
   <Card className="bg-gradient-to-br from-primary/10 to-secondary/10 shadow-lg">
@@ -194,7 +195,7 @@ const FeedbackCard = ({ feedback }) => (
       </ScrollArea>
     </CardContent>
   </Card>
-)
+);
 
 const TopicSelection = ({ selectedTopics, onTopicChange }) => {
   return (
@@ -227,20 +228,21 @@ const TopicSelection = ({ selectedTopics, onTopicChange }) => {
 };
 
 export default function Component() {
-  const [questions, setQuestions] = useState({ part1: null, part2: null, part3: null })
-  const [currentPart, setCurrentPart] = useState('part1')
-  const [transcription, setTranscription] = useState('')
-  const [feedback, setFeedback] = useState(null)
-  const [selectedTopics, setSelectedTopics] = useState({ part1: [], part2: [], part3: [] })
-  const { toast } = useToast()
-  const navigate = useNavigate()
+  const [questions, setQuestions] = useState({ part1: null, part2: null, part3: null });
+  const [currentPart, setCurrentPart] = useState('part1');
+  const [transcription, setTranscription] = useState('');
+  const [feedback, setFeedback] = useState(null);
+  const [selectedTopics, setSelectedTopics] = useState({ part1: [], part2: [], part3: [] });
+  const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
+  const navigate = useNavigate();
 
   const {
     isRecording,
     timeLeft,
     startRecording,
     stopRecording
-  } = useAudioRecorder(questions[currentPart]?.time_limit || 0)
+  } = useAudioRecorder(questions[currentPart]?.time_limit || 0);
 
   const fetchQuestions = useCallback(async (topicsToFetch = null) => {
     try {
@@ -277,54 +279,61 @@ export default function Component() {
     fetchQuestions();
   }, [fetchQuestions]);
 
+  useEffect(() => {
+    setTranscription('');
+    setFeedback(null);
+  }, [currentPart]);
+
   const handleRecordClick = async () => {
     if (isRecording) {
       toast({
         title: "Recording in Progress",
         description: "Please wait until the current recording is completed.",
         variant: "warning"
-      })
-      return
+      });
+      return;
     }
 
-    setTranscription('')
-    setFeedback(null)
-    await startRecording()
-  }
+    setTranscription('');
+    setFeedback(null);
+    await startRecording();
+  };
 
   const handleStopRecording = async () => {
-    const audioBlob = await stopRecording()
+    setIsLoading(true);
+    const audioBlob = await stopRecording();
 
     if (!audioBlob || audioBlob.size === 0) {
+      setIsLoading(false);
       toast({
         title: 'Error',
         description: "Failed to process audio: Invalid audio blob",
         variant: 'destructive'
-      })
-      return
+      });
+      return;
     }
 
     try {
-      console.log('Starting conversion to WAV')
-      const wavBlob = await convertWebmToWav(audioBlob)
-      console.log("WAV Blob size:", wavBlob.size)
-      console.log('Conversion to WAV completed')
+      console.log('Starting conversion to WAV');
+      const wavBlob = await convertWebmToWav(audioBlob);
+      console.log("WAV Blob size:", wavBlob.size);
+      console.log('Conversion to WAV completed');
 
-      const formData = new FormData()
-      formData.append('audio', wavBlob, 'audio.wav')
+      const formData = new FormData();
+      formData.append('audio', wavBlob, 'audio.wav');
 
       const response = await fetch('http://localhost:3000/audio/process-audio', {
         method: 'POST',
         body: formData
-      })
+      });
 
       if (response.ok) {
-        const data = await response.json()
-        setTranscription(data.transcription)
+        const data = await response.json();
+        setTranscription(data.transcription);
         toast({
           title: "Transcription Completed",
           description: "Your audio has been transcribed.",
-        })
+        });
 
         // Fetch feedback using the transcribed text
         const feedbackResponse = await fetch('http://localhost:3000/transcription/processTranscription', {
@@ -333,36 +342,38 @@ export default function Component() {
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({ transcription: data.transcription })
-        })
+        });
 
         if (feedbackResponse.ok) {
-          const feedbackData = await feedbackResponse.json()
-          setFeedback(feedbackData)
+          const feedbackData = await feedbackResponse.json();
+          setFeedback(feedbackData);
           toast({
             title: "Feedback Received",
             description: "Your feedback has been successfully retrieved.",
-          })
+          });
         } else {
-          throw new Error(`HTTP error! Status: ${feedbackResponse.status}`)
+          throw new Error(`HTTP error! Status: ${feedbackResponse.status}`);
         }
 
       } else {
-        const errorText = await response.text()
-        throw new Error(`HTTP error! Status: ${response.status}, Message: ${errorText}`)
+        const errorText = await response.text();
+        throw new Error(`HTTP error! Status: ${response.status}, Message: ${errorText}`);
       }
     } catch (error) {
-      console.error('Error processing audio:', error)
+      console.error('Error processing audio:', error);
       toast({
         title: 'Error',
         description: `Failed to process audio: ${error.message}`,
         variant: 'destructive'
-      })
+      });
+    } finally {
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleNavigateHome = () => {
-    navigate('/')
-  }
+    navigate('/');
+  };
 
   const handleTopicChange = (part, topic, checked) => {
     setSelectedTopics((prev) => {
@@ -374,7 +385,7 @@ export default function Component() {
       }
       return newSelected;
     });
-  }
+  };
 
   const handleApplyTopics = (closeSheet) => {
     const hasSelectedTopics = Object.values(selectedTopics).some(part => part.length > 0);
@@ -389,13 +400,13 @@ export default function Component() {
       fetchQuestions();
     }
     closeSheet();
-  }
+  };
 
   const handleNewQuestion = () => {
-    fetchQuestions()
-  }
+    fetchQuestions();
+  };
 
-  const currentQuestion = questions[currentPart]
+  const currentQuestion = questions[currentPart];
 
   return (
     <div className="container mx-auto px-4 py-12 md:px-6 lg:px-8">
@@ -499,7 +510,19 @@ export default function Component() {
                 </CardContent>
               </Card>
               <AnimatePresence>
-                {transcription && (
+                {isLoading && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                    transition={{ duration: 0.5 }}
+                  >
+                    <div className="flex justify-center items-center">
+                      <Loader className="animate-spin h-8 w-8 text-primary" />
+                    </div>
+                  </motion.div>
+                )}
+                {!isLoading && transcription && (
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -511,7 +534,7 @@ export default function Component() {
                 )}
               </AnimatePresence>
               <AnimatePresence>
-                {feedback && (
+                {!isLoading && feedback && (
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -527,5 +550,5 @@ export default function Component() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

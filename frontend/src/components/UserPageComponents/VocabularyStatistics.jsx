@@ -1,85 +1,14 @@
-import React, { useState, useEffect, Suspense } from 'react';
+// VocabularyStatistics.js
+import React, { useState } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { AlertCircle, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { motion } from "framer-motion";
-import axios from 'axios';
+import { motion } from 'framer-motion';
+import { useVocabularyData } from './useVocabularyData';
 
-function useVocabularyData(activeSection) {
-  const [data, setData] = useState({});
-  const [error, setError] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      setIsLoading(true);
-      setError(null);
-      const jwtToken = localStorage.getItem('token');
-
-      try {
-        const headers = {
-          'Authorization': `Bearer ${jwtToken}`
-        };
-
-        let response;
-        switch (activeSection) {
-          case 'misspelled':
-            response = await axios.get('http://localhost:3000/misSpellings/misSpellings', { headers });
-            setData({ misspelledWords: response.data.misspelledWords || [] });
-            break;
-          case 'repeated':
-            response = await axios.get('http://localhost:3000/repeatedWords/repeatedWords', { headers });
-            setData({ repeatedWords: response.data.commonWords || [] });
-            break;
-          case 'rare':
-            response = await axios.get('http://localhost:3000/rareWords/rareWords', { headers });
-            setData({ rareWords: response.data.rareWords || [] });
-            break;
-          case 'lexicalDensity':
-          case 'overview':
-            const [lexicalResponse, misspelledResponse, advancedResponse] = await Promise.all([
-              axios.get('http://localhost:3000/lexicalDensity/lexicalDensity', { headers }),
-              axios.get('http://localhost:3000/misSpellings/misSpellings', { headers }),
-              axios.get('http://localhost:3000/advancedVocabulary/advancedVocabulary', { headers })
-            ]);
-            setData({
-              lexicalDensity: parseFloat(lexicalResponse.data.lexicalDensity) || 0,
-              totalWords: lexicalResponse.data.totalWords || 0,
-              uniqueWords: lexicalResponse.data.uniqueWords || 0,
-              contentWords: lexicalResponse.data.contentWords || 0,
-              misspelledWords: misspelledResponse.data.misspelledWords || [],
-              advancedWordsUsed: advancedResponse.data.advancedWordsUsed || {},
-              advancedWordsSuggestions: advancedResponse.data.suggestions || [],
-              advancedWordsMessage: advancedResponse.data.message || ''
-            });
-            break;
-          case 'advanced':
-            response = await axios.get('http://localhost:3000/advancedVocabulary/advancedVocabulary', { headers });
-            setData({
-              advancedWordsUsed: response.data.advancedWordsUsed || {},
-              advancedWordsSuggestions: response.data.suggestions || [],
-              advancedWordsMessage: response.data.message || ''
-            });
-            break;
-          default:
-            break;
-        }
-      } catch (err) {
-        console.error('Error fetching data:', err);
-        setError(err instanceof Error ? err : new Error('An error occurred while fetching data.'));
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchData();
-  }, [activeSection]);
-
-  return { data, error, isLoading };
-}
-
+// Sections array for different vocabulary data types
 const sections = [
   { key: 'overview', label: 'Overview' },
   { key: 'misspelled', label: 'Misspelled' },
@@ -88,18 +17,19 @@ const sections = [
   { key: 'advanced', label: 'Advanced' },
 ];
 
+// Loading fallback component to show a spinner during data fetch
 function LoadingFallback() {
   return (
     <div className="flex justify-center items-center h-48">
-      <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
     </div>
   );
 }
 
+// Error fallback component to handle and display errors
 function ErrorFallback({ error, resetErrorBoundary }) {
   return (
     <Alert variant="destructive">
-      <AlertCircle className="h-4 w-4" />
       <AlertTitle>Error</AlertTitle>
       <AlertDescription>
         {error.message}
@@ -109,6 +39,7 @@ function ErrorFallback({ error, resetErrorBoundary }) {
   );
 }
 
+// Progress Circle for Lexical Density
 function RadialProgress({ value }) {
   const circumference = 2 * Math.PI * 45;
   const strokeDashoffset = circumference - (value / 100) * circumference;
@@ -117,7 +48,7 @@ function RadialProgress({ value }) {
     <div className="relative w-32 h-32">
       <svg className="w-full h-full" viewBox="0 0 100 100">
         <circle
-          className="text-muted-foreground"
+          className="text-stone-300"
           strokeWidth="10"
           stroke="currentColor"
           fill="transparent"
@@ -126,7 +57,7 @@ function RadialProgress({ value }) {
           cy="50"
         />
         <circle
-          className="text-primary"
+          className="text-blue-600"
           strokeWidth="10"
           strokeDasharray={circumference}
           strokeDashoffset={strokeDashoffset}
@@ -145,6 +76,7 @@ function RadialProgress({ value }) {
   );
 }
 
+// Word Cloud for rare words
 function WordCloud({ words, maxFontSize = 24, minFontSize = 12 }) {
   const maxCount = Math.max(...words.map(w => w.count));
   
@@ -169,9 +101,10 @@ function WordCloud({ words, maxFontSize = 24, minFontSize = 12 }) {
   );
 }
 
+// HeatMap for repeated words
 function HeatMap({ words }) {
   const maxOccurrences = Math.max(...words.map(w => w.occurrences));
-  
+
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
       {words.map((word, index) => {
@@ -194,6 +127,7 @@ function HeatMap({ words }) {
   );
 }
 
+// Underline animation for misspelled words with enhanced correction
 function AnimatedUnderline({ word, enhancedCorrection, frequency }) {
   const [correction, definition, example] = enhancedCorrection.split('\n');
 
@@ -211,6 +145,7 @@ function AnimatedUnderline({ word, enhancedCorrection, frequency }) {
   );
 }
 
+// Card for advanced words
 function AdvancedWordCard({ word, definition, usage, count }) {
   return (
     <Card className="mb-4">
@@ -226,6 +161,7 @@ function AdvancedWordCard({ word, definition, usage, count }) {
   );
 }
 
+// Section Content component rendering each section's data
 function SectionContent({ section, data }) {
   switch (section) {
     case 'overview':
@@ -301,6 +237,7 @@ function SectionContent({ section, data }) {
   }
 }
 
+// VocabularyStatistics Component
 export default function VocabularyStatistics() {
   const [activeSection, setActiveSection] = useState('overview');
   const { data, error, isLoading } = useVocabularyData(activeSection);
@@ -309,7 +246,7 @@ export default function VocabularyStatistics() {
     <div className="w-full max-w-4xl mx-auto p-4 space-y-6">
       <header className="text-center">
         <h1 className="text-3xl font-bold mb-2">Vocabulary Insights</h1>
-        <p className="text-muted-foreground">
+        <p className="text-stone-600">
           Discover the richness and areas for improvement in your writing.
         </p>
       </header>
@@ -337,16 +274,14 @@ export default function VocabularyStatistics() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <ErrorBoundary FallbackComponent={ErrorFallback} onReset={() => setActiveSection(activeSection)}>
-                  <Suspense fallback={<LoadingFallback />}>
-                    {isLoading ? (
-                      <LoadingFallback />
-                    ) : error ? (
-                      <ErrorFallback error={error} resetErrorBoundary={() => setActiveSection(activeSection)} />
-                    ) : (
-                      <SectionContent section={section.key} data={data} />
-                    )}
-                  </Suspense>
+                <ErrorBoundary FallbackComponent={ErrorFallback}>
+                  {isLoading ? (
+                    <LoadingFallback />
+                  ) : error ? (
+                    <ErrorFallback error={error} />
+                  ) : (
+                    <SectionContent section={section.key} data={data} />
+                  )}
                 </ErrorBoundary>
               </CardContent>
             </Card>

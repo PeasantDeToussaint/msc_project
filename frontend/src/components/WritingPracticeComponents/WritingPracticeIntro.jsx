@@ -1,114 +1,93 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { useSpring, animated, config } from 'react-spring';
-import { Pen, FileText } from 'lucide-react';
+'use client'
 
-const FloatingObject = ({ delay, style }) => {
-  const props = useSpring({
-    loop: true,
-    from: { transform: 'translate3d(0,0px,0)' },
-    to: [
-      { transform: 'translate3d(0,20px,0)' },
-      { transform: 'translate3d(0,-20px,0)' },
-    ],
-    config: {
-      duration: 2000 + delay,
-    },
-  });
-
-  return (
-    <animated.div
-      style={{
-        ...props,
-        ...style,
-        position: 'absolute',
-        width: '50px',
-        height: '50px',
-        borderRadius: '50%',
-        background: 'radial-gradient(circle, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 70%)',
-      }}
-    />
-  );
-};
+import React from 'react'
+import { motion } from 'framer-motion'
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Pen, FileText, ChevronRight } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 
 const AnimatedBackground = () => {
   return (
-    <div className="absolute inset-0 overflow-hidden">
-      <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#4F46E5" />
-            <stop offset="50%" stopColor="#7C3AED" />
-            <stop offset="100%" stopColor="#DB2777" />
-          </linearGradient>
-        </defs>
-        <rect width="100%" height="100%" fill="url(#gradient)" opacity="0.3" />
-      </svg>
-      <FloatingObject delay={0} style={{ top: '10%', left: '10%' }} />
-      <FloatingObject delay={500} style={{ top: '20%', right: '20%' }} />
-      <FloatingObject delay={1000} style={{ bottom: '15%', left: '30%' }} />
-      <FloatingObject delay={1500} style={{ bottom: '25%', right: '15%' }} />
+    <div className="fixed inset-0 overflow-hidden -z-10">
+      <div className="absolute inset-0 bg-gradient-to-br from-stone-100 to-stone-200" />
+      <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICAg')] bg-[size:20px_20px] opacity-5" />
     </div>
-  );
-};
+  )
+}
 
-const TaskLink = ({ to, title, description, icon: Icon }) => {
-  const animation = useSpring({
-    from: { opacity: 0, transform: 'translateY(20px)' },
-    to: { opacity: 1, transform: 'translateY(0px)' },
-    config: config.molasses,
-  });
+const fadeIn = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.6 } }
+}
 
-  return (
-    <animated.div style={animation}>
-      <Link
-        to={to}
-        className="block bg-white rounded-2xl shadow-xl overflow-hidden backdrop-blur-sm bg-opacity-80 transition-transform hover:scale-105"
+const TaskCard = ({ title, description, icon: Icon, onClick }) => (
+  <Card className="bg-white shadow-lg overflow-hidden border-t-4 border-blue-500 h-full flex flex-col">
+    <CardContent className="space-y-6 p-6 flex-grow flex flex-col justify-between">
+      <div>
+        <Icon className="mx-auto h-12 w-12 text-blue-600 mb-4" />
+        <h3 className="text-2xl font-semibold text-stone-800 text-center mb-4">{title}</h3>
+        <p className="text-stone-600 text-center">{description}</p>
+      </div>
+      <Button 
+        className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition-all duration-300 flex items-center justify-center mt-6"
+        onClick={onClick}
       >
-        <div className="p-6 md:p-8">
-          <Icon className="mx-auto h-12 w-12 text-indigo-600 mb-4" />
-          <h3 className="text-2xl font-bold text-gray-900 mb-2">{title}</h3>
-          <p className="text-gray-600">{description}</p>
-        </div>
-      </Link>
-    </animated.div>
-  );
-};
+        Start Practice
+        <ChevronRight className="ml-2" size={20} />
+      </Button>
+    </CardContent>
+  </Card>
+)
 
 export default function WritingPractice() {
-  const headerAnimation = useSpring({
-    from: { opacity: 0, transform: 'translateY(-20px)' },
-    to: { opacity: 1, transform: 'translateY(0px)' },
-    config: config.molasses,
-  });
+  const navigate = useNavigate()
+
+  const handleTask1Click = () => {
+    navigate('/WritingPracticeTask1Intro')
+  }
+
+  const handleTask2Click = () => {
+    navigate('/WritingPracticeTask2Intro')
+  }
 
   return (
-    <div className="flex min-h-screen items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
+    <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8 relative">
       <AnimatedBackground />
-      <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:20px_20px]" />
-      <div className="w-full max-w-4xl space-y-12 relative z-10">
-        <animated.div style={headerAnimation} className="text-center">
-          <Pen className="mx-auto h-16 w-16 text-indigo-600" />
-          <h2 className="mt-6 text-4xl font-extrabold text-white">Writing Practice</h2>
-          <p className="mt-2 text-xl text-gray-200">
-            IELTS Writing Test lasts for 60 minutes, and you will need to complete two writing tasks.
-          </p>
-        </animated.div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <TaskLink
-            to="/WritingPracticeTask1Intro"
-            title="Practice Task 1"
-            description="Write a report summarizing, describing, or explaining visual information (graphs, charts, tables, etc.) in at least 150 words."
-            icon={FileText}
-          />
-          <TaskLink
-            to="/WritingPracticeTask2Intro"
-            title="Practice Task 2"
-            description="Write an essay responding to a point of view, argument, or problem in at least 250 words."
-            icon={FileText}
-          />
-        </div>
-      </div>
+      <motion.div 
+        className="max-w-6xl mx-auto space-y-8 relative z-10"
+        initial="hidden"
+        animate="visible"
+        variants={fadeIn}
+      >
+        <Card className="bg-white shadow-lg overflow-hidden border-t-4 border-blue-500">
+          <CardHeader className="bg-stone-50 border-b border-stone-200">
+            <CardTitle className="text-3xl font-bold tracking-tight sm:text-4xl text-center text-stone-800">Writing Practice</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6 p-6">
+            <div className="text-center">
+              <Pen className="mx-auto h-16 w-16 text-blue-600" />
+              <p className="mt-2 text-xl text-stone-600">
+                IELTS Writing Test lasts for 60 minutes, and you will need to complete two writing tasks.
+              </p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
+              <TaskCard
+                title="Practice Task 1"
+                description="Write a report summarizing, describing, or explaining visual information (graphs, charts, tables, etc.) in at least 150 words."
+                icon={FileText}
+                onClick={handleTask1Click}
+              />
+              <TaskCard
+                title="Practice Task 2"
+                description="Write an essay responding to a point of view, argument, or problem in at least 250 words."
+                icon={FileText}
+                onClick={handleTask2Click}
+              />
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
     </div>
-  );
+  )
 }

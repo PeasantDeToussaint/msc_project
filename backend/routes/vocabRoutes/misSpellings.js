@@ -30,7 +30,7 @@ async function getGPT4Correction(word) {
     const response = await axios.post(
       'https://api.openai.com/v1/chat/completions',
       {
-        model: 'gpt-4',
+        model: 'gpt-4o-mini',
         messages: [
           { role: 'system', content: 'You are a spelling corrector and dictionary.' },
           { role: 'user', content: prompt },

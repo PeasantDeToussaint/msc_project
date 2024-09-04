@@ -10,7 +10,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { useDropzone } from 'react-dropzone'
-import { BookOpen, Edit3, Mic, Headphones, Plus, Trash2, Image as ImageIcon, Search } from 'lucide-react'
+import { Edit3, Mic, Headphones, Plus, Trash2, Image as ImageIcon, Search } from 'lucide-react'
 
 const API_BASE_URL = 'http://localhost:3000'
 
@@ -18,24 +18,7 @@ const endpoints = {
   writingTask1: `${API_BASE_URL}/writingTask1Questions/prompts`,
   writingTask2: `${API_BASE_URL}/writingTask2Questions/prompts`,
   speaking: `${API_BASE_URL}/speakingQuestions/prompts`,
-  reading: `${API_BASE_URL}/readingQuestions/questions`,
-  listening: `${API_BASE_URL}/listeningQuestions/prompts`,
 }
-
-const readingQuestionTypes = [
-  'Matching Features',
-  'Table Completion',
-  'Flow-chart Completion',
-  'Identifying Information',
-  'Matching Headings',
-  'Matching Sentence Endings',
-  'Multiple Choice (more than one answer)',
-  'Multiple Choice (one answer)',
-  'Note Completion',
-  'Sentence Completion',
-  'Summary Completion',
-  'Diagram Label Completion'
-]
 
 const writingTask2Categories = [
   'Public Transport', 'Employment', 'Youth Crime', 'Celebrity', 'Society',
@@ -76,7 +59,7 @@ export default function Component() {
   const [questions, setQuestions] = useState([])
   const [filteredQuestions, setFilteredQuestions] = useState([])
   const [currentQuestion, setCurrentQuestion] = useState(null)
-  const [section, setSection] = useState("reading")
+  const [section, setSection] = useState("writingTask1")
   const [subSection, setSubSection] = useState("1")
   const [imageFile, setImageFile] = useState(null)
   const [searchTerm, setSearchTerm] = useState("")
@@ -197,14 +180,6 @@ export default function Component() {
       <aside className="w-64 bg-gray-80 p-4 overflow-y-auto flex-shrink-0">
           <nav className="space-y-2">
             <Button
-              variant={section === 'reading' ? 'secondary' : 'ghost'}
-              className="w-full justify-start"
-              onClick={() => setSection('reading')}
-            >
-              <BookOpen className="mr-2 h-5 w-5" />
-              Reading
-            </Button>
-            <Button
               variant={section === 'writingTask1' ? 'secondary' : 'ghost'}
               className="w-full justify-start"
               onClick={() => setSection('writingTask1')}
@@ -227,14 +202,6 @@ export default function Component() {
             >
               <Mic className="mr-2 h-5 w-5" />
               Speaking
-            </Button>
-            <Button
-              variant={section === 'listening' ? 'secondary' : 'ghost'}
-              className="w-full justify-start"
-              onClick={() => setSection('listening')}
-            >
-              <Headphones className="mr-2 h-5 w-5" />
-              Listening
             </Button>
           </nav>
         </aside>
@@ -311,9 +278,6 @@ export default function Component() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All</SelectItem>
-                    {section === 'reading' && readingQuestionTypes.map(type => (
-                      <SelectItem key={type} value={type}>{type}</SelectItem>
-                    ))}
                     {section === 'writingTask1' && (
                       <>
                         <SelectItem value="line">Line Graph</SelectItem>
@@ -422,21 +386,6 @@ const AddEditQuestionDialog = ({ isOpen, onClose, onSave, question, section, sub
         onSave(questionData)
       }}>
         <div className="grid gap-4 py-4">
-          {section === 'reading' && (
-            <div className="grid gap-2">
-              <Label htmlFor="type">Question Type</Label>
-              <Select name="type" defaultValue={question?.type || ''}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select question type" />
-                </SelectTrigger>
-                <SelectContent>
-                  {readingQuestionTypes.map((type) => (
-                    <SelectItem key={type} value={type}>{type}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
           {section === 'writingTask1' && (
             <div className="grid gap-2">
               <Label htmlFor="category">Chart Type</Label>
@@ -494,18 +443,6 @@ const AddEditQuestionDialog = ({ isOpen, onClose, onSave, question, section, sub
             <div className="grid gap-2">
               <Label htmlFor="time_limit">Time Limit (minutes)</Label>
               <Input id="time_limit" name="time_limit" type="number" defaultValue={question?.time_limit} />
-            </div>
-          )}
-          {section === 'reading' && (
-            <div className="grid gap-2">
-              <Label htmlFor="passage">Reading Passage</Label>
-              <Textarea id="passage" name="passage" defaultValue={question?.passage} />
-            </div>
-          )}
-          {['reading', 'listening'].includes(section) && (
-            <div className="grid gap-2">
-              <Label htmlFor="correct_answer">Correct Answer</Label>
-              <Input id="correct_answer" name="correct_answer" defaultValue={question?.correct_answer} />
             </div>
           )}
           {section === 'writingTask1' && (
