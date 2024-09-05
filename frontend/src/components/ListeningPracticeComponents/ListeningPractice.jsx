@@ -13,7 +13,8 @@ import { Separator } from "@/components/ui/separator";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Play, Pause, SkipBack, SkipForward, BarChart2, AlertTriangle, CheckCircle2 } from 'lucide-react';
 
-const BACKEND_URL = process.env.BASE_URL || `http://localhost:${process.env.ALLOCATED_PORT}`;
+const BASE_URL = import.meta.env.VITE_BASE_URL || `http://localhost:${import.meta.env.VITE_ALLOCATED_PORT}`;
+
 
 const LoadingSpinner = () => (
   <div className="flex justify-center items-center h-screen">
@@ -28,7 +29,7 @@ const AudioPlayer = ({ audioId }) => {
   const audioRef = useRef(null);
 
   useEffect(() => {
-    const audioUrl = `${BACKEND_URL}/listeningQuestions/audio/${audioId}`;
+    const audioUrl = `${BASE_URL}/listeningQuestions/audio/${audioId}`;
     if (audioRef.current) {
       audioRef.current.src = audioUrl;
       audioRef.current.load();

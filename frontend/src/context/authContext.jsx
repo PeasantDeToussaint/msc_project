@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-const BASE_URL = process.env.BASE_URL || `http://localhost:${process.env.ALLOCATED_PORT}`;
+const BASE_URL = import.meta.env.VITE_BASE_URL || `http://localhost:${import.meta.env.VITE_ALLOCATED_PORT}`;
 
 
 const AuthContext = createContext();
@@ -21,12 +21,13 @@ export function AuthProvider({ children }) {
           return;
         }
 
-        const res = await fetch("/authentication/verify", {
+        const res = await fetch(`${BASE_URL}/authentication/verify`, {
           method: "POST",
           headers: { 
             'Authorization': `Bearer ${token}`
           }
         });
+
 
         if (!res.ok) {
           throw new Error('Verification failed');

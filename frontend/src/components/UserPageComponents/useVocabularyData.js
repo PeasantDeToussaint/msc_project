@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
-const BASE_URL = process.env.BASE_URL || `http://localhost:${process.env.ALLOCATED_PORT}`;
 
+const BASE_URL = import.meta.env.BASE_URL || `http://localhost:${import.meta.env.ALLOCATED_PORT}`;
 
 // Fetcher function for different sections
 const fetchVocabularyData = async (section) => {

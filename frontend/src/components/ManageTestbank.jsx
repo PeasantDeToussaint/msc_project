@@ -12,7 +12,8 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { useDropzone } from 'react-dropzone'
 import { Edit3, Mic, Headphones, Plus, Trash2, Image as ImageIcon, Search } from 'lucide-react'
 
-const BASE_URL = process.env.BASE_URL || `http://localhost:${process.env.ALLOCATED_PORT}`;
+const BASE_URL = import.meta.env.VITE_BASE_URL || `http://localhost:${import.meta.env.VITE_ALLOCATED_PORT}`;
+
 
 
 const endpoints = {
@@ -361,7 +362,7 @@ const QuestionCard = ({ question, onEdit, onDelete }) => (
       </p>
       {question.image_url && (
         <div className="mt-2 relative h-32 w-full">
-          <img src={`${API_BASE_URL}/uploads/${question.image_url}`} alt="Question" className="absolute inset-0 w-full h-full object-cover rounded" />
+          <img src={`${BASE_URL}/uploads/${question.image_url}`} alt="Question" className="absolute inset-0 w-full h-full object-cover rounded" />
           <div className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center">
             <ImageIcon className="h-8 w-8 text-white" />
           </div>

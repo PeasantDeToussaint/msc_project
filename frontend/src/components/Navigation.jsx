@@ -32,7 +32,8 @@ import { useToast } from '@/components/ui/use-toast';
 import { useAuth } from '../context/authContext';
 import { User, Settings, LogOut, BookOpen, PenTool, Mic, Headphones, BookMarked, Lightbulb } from 'lucide-react';
 import { cn } from "@/lib/utils";
-const BASE_URL = process.env.BASE_URL || `http://localhost:${process.env.ALLOCATED_PORT}`;
+const BASE_URL = import.meta.env.VITE_BASE_URL || `http://localhost:${import.meta.env.VITE_ALLOCATED_PORT}`;
+
 
 
 export default function Navigation() {

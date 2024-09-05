@@ -9,7 +9,8 @@ import MatchingSentenceEndingsQuestion from './MatchingSentenceEndingsQuestion'
 import SentenceCompletionQuestion from './SentenceCompletionQuestion'
 import SummaryCompletionQuestion from './SummaryCompletionQuestion'
 import TableCompletionQuestion from './TableCompletionQuestion'
-const BASE_URL = process.env.BASE_URL || `http://localhost:${process.env.ALLOCATED_PORT}`;
+const BASE_URL = import.meta.env.VITE_BASE_URL || `http://localhost:${import.meta.env.VITE_ALLOCATED_PORT}`;
+
 
 
 const questionComponents = {
