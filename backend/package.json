@@ -45,6 +45,6 @@
   },
   "description": "",
   "engines": {
-    "node": "18.x"
+    "node": "20.15.0"
   }
 }
