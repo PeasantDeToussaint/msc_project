@@ -1,11 +1,14 @@
-import dotenv from 'dotenv';
-dotenv.config();
-
 import express from 'express';
 import cors from 'cors';
 import bodyParser from 'body-parser';
 import path from 'path';
 import { fileURLToPath } from 'url';
+
+// Load environment variables in non-production environments
+if (process.env.NODE_ENV !== 'production') {
+  const dotenv = await import('dotenv');
+  dotenv.config();
+}
 
 // Import routes
 import speakingQuestions from '../routes/speakingRoutes/speakingQuestions.js';
@@ -46,12 +49,15 @@ if (process.env.NODE_ENV === 'production') {
   app.use(express.static(path.join(__dirname, '../../frontend/dist')));
 }
 
-// Logging middleware to debug requests
-app.use((req, res, next) => {
-  console.log(`${req.method} ${req.url}`);
-  next();
-});
+// Conditional logging for development
+if (process.env.NODE_ENV !== 'production') {
+  app.use((req, res, next) => {
+    console.log(`${req.method} ${req.url}`);
+    next();
+  });
+}
 
+// Test route for debugging purposes
 app.post('/test', (req, res) => {
   console.log('Test route received:', req.body);
   res.send('Test route is working!');
@@ -77,7 +83,7 @@ app.use('/readingQuestions', readingQuestions);
 app.use('/getEssays', getEssays);
 app.use('/listeningQuestions', listeningQuestions);
 
-// Serve the frontend's index.html for all other routes in production
+// Serve frontend's index.html for all other routes in production
 app.get('*', (req, res) => {
   if (req.url.startsWith('/static') || req.url.endsWith('.js') || req.url.endsWith('.css') || req.url.endsWith('.map')) {
     res.sendFile(path.join(__dirname, '../../frontend/dist', req.url));
@@ -87,9 +93,8 @@ app.get('*', (req, res) => {
 });
 
 // Start the server
-
 const PORT = process.env.PORT || 5000; // Use Heroku's port in production or default to 5000 for local development
-
-const server = app.listen(PORT, () => {
+app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
+
