@@ -28,7 +28,6 @@ import listeningQuestions from '../routes/listeningRoutes/listeningQuestions.js'
 import readingQuestions from '../routes/readingRoutes/readingQuestions.js';
 
 const app = express();
-const PORT = process.env.PORT || 3000;
 
 // Resolve the directory name dynamically
 const __filename = fileURLToPath(import.meta.url);
@@ -88,6 +87,7 @@ app.get('*', (req, res) => {
 });
 
 // Start the server
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+const server = app.listen(0, () => {
+  const allocatedPort = server.address().port;
+  console.log(`Server running on port ${allocatedPort}`);
 });
