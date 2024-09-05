@@ -8,6 +8,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { useToast } from "@/components/ui/use-toast";
 import { LogIn, Loader2 } from 'lucide-react';
 import { useAuth } from '../context/authContext';
+const BASE_URL = process.env.BASE_URL || `http://localhost:${process.env.ALLOCATED_PORT}`;
 
 const FloatingObject = ({ delay }) => {
   const props = useSpring({
@@ -81,7 +82,7 @@ export default function LoginPage() {
     e.preventDefault();
     setIsLoading(true);
     try {
-      const response = await fetch('http://localhost:3000/authentication/login', {
+      const response = await fetch(`${BASE_URL}/authentication/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

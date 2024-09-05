@@ -6,6 +6,8 @@ import { motion } from 'framer-motion'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft } from 'lucide-react'
+const BASE_URL = process.env.BASE_URL || `http://localhost:${process.env.ALLOCATED_PORT}`;
+
 
 const AnimatedBackground = () => {
   return (
@@ -47,7 +49,7 @@ export default function FeedbackTask1() {
       formData.append('response', response)
       formData.append('image', image_url)
 
-      fetch('http://localhost:3000/essayTask1/processTask1', {
+      fetch(`${BASE_URL}/essayTask1/processTask1`, {
         method: 'POST',
         body: formData,
       })

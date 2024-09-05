@@ -8,6 +8,9 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Clock, ArrowLeft, Send } from 'lucide-react'
 
+const BASE_URL = process.env.BASE_URL || `http://localhost:${process.env.ALLOCATED_PORT}`;
+
+
 const AnimatedBackground = () => {
   return (
     <div className="fixed inset-0 overflow-hidden -z-10">
@@ -92,7 +95,7 @@ export default function WritingPracticeTask1() {
           <CardContent className="space-y-6 p-6">
             {prompt.image_url ? (
               <img
-                src={`http://localhost:3000/uploads/${prompt.image_url}`}
+                src={`${BASE_URL}/uploads/${prompt.image_url}`}
                 alt="Prompt"
                 className="w-full h-auto object-contain rounded-lg"
                 style={{ aspectRatio: "800/450" }}

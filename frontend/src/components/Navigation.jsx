@@ -32,6 +32,8 @@ import { useToast } from '@/components/ui/use-toast';
 import { useAuth } from '../context/authContext';
 import { User, Settings, LogOut, BookOpen, PenTool, Mic, Headphones, BookMarked, Lightbulb } from 'lucide-react';
 import { cn } from "@/lib/utils";
+const BASE_URL = process.env.BASE_URL || `http://localhost:${process.env.ALLOCATED_PORT}`;
+
 
 export default function Navigation() {
   const { user, logout } = useAuth();
@@ -49,7 +51,7 @@ export default function Navigation() {
   };
 
   const handlePasswordSubmit = async () => {
-    const response = await fetch('http://localhost:3000/admin/validate-admin-password', {
+    const response = await fetch(`${BASE_URL}/admin/validate-admin-password`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

@@ -14,6 +14,8 @@ import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTr
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { convertWebmToWav } from '../../lib/audioConverter';
+const BASE_URL = process.env.BASE_URL || `http://localhost:${process.env.ALLOCATED_PORT}`;
+
 
 const topics = {
   part1: [
@@ -246,7 +248,7 @@ export default function Component() {
 
   const fetchQuestions = useCallback(async (topicsToFetch = null) => {
     try {
-      const endpoint = topicsToFetch ? 'http://localhost:3000/speakingQuestions/selected-questions' : 'http://localhost:3000/speakingQuestions/random-questions';
+      const endpoint = topicsToFetch ? `${BASE_URL}/speakingQuestions/selected-questions` : `${BASE_URL}/speakingQuestions/random-questions`;
       const method = topicsToFetch ? 'POST' : 'GET';
       const body = topicsToFetch ? JSON.stringify(topicsToFetch) : undefined;
       const headers = topicsToFetch ? { 'Content-Type': 'application/json' } : undefined;
@@ -322,7 +324,7 @@ export default function Component() {
       const formData = new FormData();
       formData.append('audio', wavBlob, 'audio.wav');
 
-      const response = await fetch('http://localhost:3000/audio/process-audio', {
+      const response = await fetch(`${BASE_URL}/audio/process-audio`, {
         method: 'POST',
         body: formData
       });
@@ -336,7 +338,7 @@ export default function Component() {
         });
 
         // Fetch feedback using the transcribed text
-        const feedbackResponse = await fetch('http://localhost:3000/transcription/processTranscription', {
+        const feedbackResponse = await fetch(`${BASE_URL}/transcription/processTranscription`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'

@@ -6,6 +6,8 @@ import { motion } from 'framer-motion'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft } from 'lucide-react'
+const BASE_URL = process.env.BASE_URL || `http://localhost:${process.env.ALLOCATED_PORT}`;
+
 
 const AnimatedBackground = () => {
   return (
@@ -47,7 +49,7 @@ export default function Feedback() {
       const token = localStorage.getItem('token')
       console.log("token is like this:", token)
 
-      fetch('http://localhost:3000/essay/processEssay', {
+      fetch(`${BASE_URL}/essay/processEssay`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,

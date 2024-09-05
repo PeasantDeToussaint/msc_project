@@ -6,6 +6,8 @@ import wordListPath from 'word-list';
 
 const router = express.Router();
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+const BASE_URL = process.env.BASE_URL || `http://localhost:${process.env.ALLOCATED_PORT}`;
+
 
 // Load the word list and convert it to a Set for quick lookups
 const wordArray = fs.readFileSync(wordListPath, 'utf8').split('\n');
@@ -86,7 +88,7 @@ router.get('/misSpellings', authorize, async (req, res) => {
     };
 
     // Fetch essays for the user from the /getEssays endpoint
-    const response = await axios.get('http://localhost:3000/getEssays/getEssays', { headers });
+    const response = await axios.get(`${BASE_URL}/getEssays/getEssays`, { headers });
 
     if (response.data.essays.length === 0) {
       return res.status(404).json({ msg: 'No essays found for this user' });

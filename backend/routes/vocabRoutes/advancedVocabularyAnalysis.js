@@ -6,6 +6,9 @@ import authorize from '../../middleware/authorize.js';
 const router = express.Router();
 const wordNet = new natural.WordNet();
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+const BASE_URL = process.env.BASE_URL || `http://localhost:${process.env.ALLOCATED_PORT}`;
+
+
 
 const advancedVocabulary = [
     "advantage", "benefit", "merit", "positive side", "upside", "boon", "pros",
@@ -112,7 +115,7 @@ const advancedVocabulary = [
 
 const fetchEssays = async (token) => {
     try {
-        const response = await axios.get('http://localhost:3000/getEssays/getEssays', {
+        const response = await axios.get(`${BASE_URL}/getEssays/getEssays`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         return response.data.essays.map(e => e.essay);

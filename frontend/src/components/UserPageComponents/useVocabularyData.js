@@ -1,5 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
+const BASE_URL = process.env.BASE_URL || `http://localhost:${process.env.ALLOCATED_PORT}`;
+
 
 // Fetcher function for different sections
 const fetchVocabularyData = async (section) => {
@@ -10,20 +12,20 @@ const fetchVocabularyData = async (section) => {
 
   switch (section) {
     case 'misspelled':
-      const misspelledResponse = await axios.get('http://localhost:3000/misSpellings/misSpellings', { headers });
+      const misspelledResponse = await axios.get(`${BASE_URL}/misSpellings/misSpellings`, { headers });
       return { misspelledWords: misspelledResponse.data.misspelledWords || [] };
     case 'repeated':
-      const repeatedResponse = await axios.get('http://localhost:3000/repeatedWords/repeatedWords', { headers });
+      const repeatedResponse = await axios.get(`${BASE_URL}/repeatedWords/repeatedWords`, { headers });
       return { repeatedWords: repeatedResponse.data.commonWords || [] };
     case 'rare':
-      const rareResponse = await axios.get('http://localhost:3000/rareWords/rareWords', { headers });
+      const rareResponse = await axios.get(`${BASE_URL}/rareWords/rareWords`, { headers });
       return { rareWords: rareResponse.data.rareWords || [] };
     case 'lexicalDensity':
     case 'overview':
       const [lexicalResponse, misspelledRes, advancedResponse] = await Promise.all([
-        axios.get('http://localhost:3000/lexicalDensity/lexicalDensity', { headers }),
-        axios.get('http://localhost:3000/misSpellings/misSpellings', { headers }),
-        axios.get('http://localhost:3000/advancedVocabulary/advancedVocabulary', { headers }),
+        axios.get(`${BASE_URL}/lexicalDensity/lexicalDensity`, { headers }),
+        axios.get(`${BASE_URL}/misSpellings/misSpellings`, { headers }),
+        axios.get(`${BASE_URL}/advancedVocabulary/advancedVocabulary`, { headers }),
       ]);
       return {
         lexicalDensity: parseFloat(lexicalResponse.data.lexicalDensity) || 0,
@@ -36,7 +38,7 @@ const fetchVocabularyData = async (section) => {
         advancedWordsMessage: advancedResponse.data.message || '',
       };
     case 'advanced':
-      const advancedRes = await axios.get('http://localhost:3000/advancedVocabulary/advancedVocabulary', { headers });
+      const advancedRes = await axios.get(`${BASE_URL}/advancedVocabulary/advancedVocabulary`, { headers });
       return {
         advancedWordsUsed: advancedRes.data.advancedWordsUsed || {},
         advancedWordsSuggestions: advancedRes.data.suggestions || [],

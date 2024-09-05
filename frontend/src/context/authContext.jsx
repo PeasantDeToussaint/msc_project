@@ -1,5 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+const BASE_URL = process.env.BASE_URL || `http://localhost:${process.env.ALLOCATED_PORT}`;
+
 
 const AuthContext = createContext();
 
@@ -19,7 +21,7 @@ export function AuthProvider({ children }) {
           return;
         }
 
-        const res = await fetch("http://localhost:3000/authentication/verify", {
+        const res = await fetch("/authentication/verify", {
           method: "POST",
           headers: { 
             'Authorization': `Bearer ${token}`

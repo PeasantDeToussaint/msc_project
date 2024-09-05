@@ -11,14 +11,5 @@ export default defineConfig({
   },
   optimizeDeps: {
     include: ['@ffmpeg/ffmpeg'],
-  },
-  server: {
-    proxy: {
-      '/speakingQuestions': {
-        target: 'http://localhost:3000',
-        changeOrigin: true,
-        secure: false,
-      }
-    }
   }
 });

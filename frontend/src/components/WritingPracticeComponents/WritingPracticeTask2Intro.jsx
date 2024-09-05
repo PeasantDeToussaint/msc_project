@@ -9,6 +9,8 @@ import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { BarChart2, Shuffle } from 'lucide-react'
+const BASE_URL = process.env.BASE_URL || `http://localhost:${process.env.ALLOCATED_PORT}`;
+
 
 const AnimatedBackground = () => {
   return (
@@ -34,7 +36,7 @@ const IELTSWritingPractice = () => {
 
   const handleStartPractice = async () => {
     try {
-      const response = await fetch(`http://localhost:3000/writingTask2Questions/selected-question`, {
+      const response = await fetch(`${BASE_URL}/writingTask2Questions/selected-question`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -54,7 +56,7 @@ const IELTSWritingPractice = () => {
 
   const handleRandomPractice = async () => {
     try {
-      const response = await fetch(`http://localhost:3000/writingTask2Questions/random-question`)
+      const response = await fetch(`${BASE_URL}/writingTask2Questions/random-question`)
       const data = await response.json()
       if (response.ok) {
         navigate(`/WritingPracticeTask2`, { state: { prompt: data } })

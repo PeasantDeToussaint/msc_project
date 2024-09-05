@@ -3,6 +3,8 @@ import natural from 'natural';
 import stopword from 'stopword';
 import axios from 'axios';
 import authorize from '../../middleware/authorize.js';
+const BASE_URL = process.env.BASE_URL || `http://localhost:${process.env.ALLOCATED_PORT}`;
+
 
 const router = express.Router();
 const wordnet = new natural.WordNet();
@@ -70,7 +72,7 @@ const extractCommonWords = async (essays) => {
 // Function to fetch essays
 const fetchEssays = async (token) => {
     try {
-        const response = await axios.get('http://localhost:3000/getEssays/getEssays', {
+        const response = await axios.get(`${BASE_URL}/getEssays/getEssays`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         return response.data.essays.map(e => e.essay);

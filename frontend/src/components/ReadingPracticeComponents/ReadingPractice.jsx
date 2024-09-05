@@ -9,6 +9,8 @@ import MatchingSentenceEndingsQuestion from './MatchingSentenceEndingsQuestion'
 import SentenceCompletionQuestion from './SentenceCompletionQuestion'
 import SummaryCompletionQuestion from './SummaryCompletionQuestion'
 import TableCompletionQuestion from './TableCompletionQuestion'
+const BASE_URL = process.env.BASE_URL || `http://localhost:${process.env.ALLOCATED_PORT}`;
+
 
 const questionComponents = {
   'Multiple Choice': MultipleChoiceQuestion,
@@ -35,7 +37,7 @@ export default function ReadingPracticePage() {
         try {
           const responses = await Promise.all(
             selectedTypes.map(type =>
-              fetch(`http://localhost:3000/readingQuestions/questions?type=${encodeURIComponent(type)}&count=${questionCount}`)
+              fetch(`${BASE_URL}/readingQuestions/questions?type=${encodeURIComponent(type)}&count=${questionCount}`)
                 .then(response => {
                   if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`)

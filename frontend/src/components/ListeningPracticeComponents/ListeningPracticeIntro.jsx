@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { motion } from "framer-motion";
+const BASE_URL = process.env.BASE_URL || `http://localhost:${process.env.ALLOCATED_PORT}`;
+
 
 const FeatureCard = ({ title, description }) => (
   <motion.div 
@@ -33,7 +35,7 @@ export default function Component() {
   useEffect(() => {
     const fetchAvailableTests = async () => {
       try {
-        const response = await fetch('http://localhost:3000/listeningQuestions/availableTest');
+        const response = await fetch(`${BASE_URL}/listeningQuestions/availableTest`);
         if (!response.ok) throw new Error('Failed to fetch available tests');
         const data = await response.json();
         setAvailableTests(data);

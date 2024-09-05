@@ -2,3 +2,5 @@ backend/.env
 node_modules/
 .env
 project-yasiman-613ea398e412.json
+backend/node_modules/
+frontend/node_modules/

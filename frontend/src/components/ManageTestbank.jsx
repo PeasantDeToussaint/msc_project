@@ -12,12 +12,13 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { useDropzone } from 'react-dropzone'
 import { Edit3, Mic, Headphones, Plus, Trash2, Image as ImageIcon, Search } from 'lucide-react'
 
-const API_BASE_URL = 'http://localhost:3000'
+const BASE_URL = process.env.BASE_URL || `http://localhost:${process.env.ALLOCATED_PORT}`;
+
 
 const endpoints = {
-  writingTask1: `${API_BASE_URL}/writingTask1Questions/prompts`,
-  writingTask2: `${API_BASE_URL}/writingTask2Questions/prompts`,
-  speaking: `${API_BASE_URL}/speakingQuestions/prompts`,
+  writingTask1: `${BASE_URL}/writingTask1Questions/prompts`,
+  writingTask2: `${BASE_URL}/writingTask2Questions/prompts`,
+  speaking: `${BASE_URL}/speakingQuestions/prompts`,
 }
 
 const writingTask2Categories = [

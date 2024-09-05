@@ -5,6 +5,8 @@ import { commonWords } from '../../utils/2000MostCommonEnglishWords.js';
 import wordListPath from 'word-list';
 import authorize from '../../middleware/authorize.js';
 import WordPOS from 'wordpos'; // Import the wordpos package
+const BASE_URL = process.env.BASE_URL || `http://localhost:${process.env.ALLOCATED_PORT}`;
+
 
 const router = express.Router();
 const wordpos = new WordPOS(); // Initialize WordPOS
@@ -20,7 +22,7 @@ router.get('/rareWords', authorize, async (req, res) => {
         };
 
         // Fetch essays from another service
-        const response = await axios.get('http://localhost:3000/getEssays/getEssays', { headers });
+        const response = await axios.get(`${BASE_URL}/getEssays/getEssays`, { headers });
 
         if (!response.data.essays || response.data.essays.length === 0) {
             return res.status(404).json({ msg: 'No essays found for this user' });

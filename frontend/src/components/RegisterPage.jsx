@@ -8,6 +8,9 @@ import { Toaster } from "@/components/ui/toaster";
 import { useToast } from "@/components/ui/use-toast";
 import { UserPlus, Loader2 } from 'lucide-react';
 
+const BASE_URL = process.env.BASE_URL || `http://localhost:${process.env.ALLOCATED_PORT}`;
+
+
 const FloatingObject = ({ delay }) => {
   const props = useSpring({
     loop: true,
@@ -84,7 +87,7 @@ export default function RegisterPage() {
     e.preventDefault();
     setIsLoading(true);
     try {
-      const response = await fetch('http://localhost:3000/authentication/register', {
+      const response = await fetch(`${BASE_URL}/authentication/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
