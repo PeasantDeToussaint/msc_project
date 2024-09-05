@@ -88,17 +88,8 @@ app.get('*', (req, res) => {
 
 // Start the server
 
-const PORT = process.env.PORT || 0; // Use Heroku's port or default to 0 for local development
+const PORT = process.env.PORT || 5000; // Use Heroku's port in production or default to 5000 for local development
 
 const server = app.listen(PORT, () => {
-  const allocatedPort = server.address().port;
-  console.log(`Server running on port ${allocatedPort}`);
-  process.env.ALLOCATED_PORT = allocatedPort;
+  console.log(`Server running on port ${PORT}`);
 });
-
-// Endpoint to get the allocated port (for local development)
-if (process.env.NODE_ENV !== 'production') {
-  app.get('/port', (req, res) => {
-    res.json({ port: process.env.ALLOCATED_PORT });
-  });
-}

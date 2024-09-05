@@ -82,7 +82,7 @@ export default function LoginPage() {
     e.preventDefault();
     setIsLoading(true);
     try {
-      const response = await fetch(`${BASE_URL}/authentication/login`, {
+      const response = await fetch(`http://localhost:5000/authentication/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
