@@ -1,13 +1,33 @@
 import express from 'express';
-import natural from 'natural';
 import stopword from 'stopword';
 import axios from 'axios';
 import authorize from '../../middleware/authorize.js';
 const BASE_URL = process.env.BASE_URL || `http://localhost:${process.env.ALLOCATED_PORT}`;
 
-
 const router = express.Router();
-const wordnet = new natural.WordNet();
+
+// Simplified tokenization function
+const tokenizeText = (text) => {
+    return text
+        .toLowerCase() // Convert to lowercase
+        .replace(/[^\w\s]/g, '') // Remove punctuation
+        .split(/\s+/); // Split by spaces (whitespace)
+};
+
+// Fetch synonyms from an external API (Free Dictionary API)
+const fetchSynonymsFromAPI = async (word) => {
+    try {
+        const response = await axios.get(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`);
+        if (response.data.length > 0 && response.data[0].meanings.length > 0) {
+            const synonyms = response.data[0].meanings[0].definitions[0].synonyms;
+            return synonyms || [];
+        }
+        return [];
+    } catch (error) {
+        console.error(`Error fetching synonyms for word "${word}":`, error.message);
+        return [];
+    }
+};
 
 // Function to extract common words and suggest synonyms
 const extractCommonWords = async (essays) => {
@@ -21,10 +41,9 @@ const extractCommonWords = async (essays) => {
     }
 
     // Tokenize the text
-    const tokenizer = new natural.WordTokenizer();
-    let tokens = tokenizer.tokenize(combinedText.toLowerCase());
+    let tokens = tokenizeText(combinedText);
 
-    // Remove basic stopwords and connectors
+    // Remove stopwords
     tokens = stopword.removeStopwords(tokens);
 
     // Create a frequency distribution
@@ -46,17 +65,7 @@ const extractCommonWords = async (essays) => {
     // Suggest synonyms for the top words
     const results = await Promise.all(
         topWords.map(async ([word, frequency]) => {
-            let synonyms = [];
-            await new Promise((resolve) => {
-                wordnet.lookup(word, (results) => {
-                    results.forEach((result) => {
-                        synonyms = synonyms.concat(result.synonyms);
-                    });
-                    resolve();
-                });
-            }).catch((error) => {
-                console.error(`Error fetching synonyms for word "${word}":`, error);
-            });
+            const synonyms = await fetchSynonymsFromAPI(word);
 
             return {
                 word,

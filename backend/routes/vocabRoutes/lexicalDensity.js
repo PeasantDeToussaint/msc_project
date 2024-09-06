@@ -1,49 +1,41 @@
 import express from 'express';
-import natural from 'natural';
 import axios from 'axios';
 import authorize from '../../middleware/authorize.js';
 
 const router = express.Router();
-
-// Load the POS Tagger components
-const baseFolder = "node_modules/natural/lib/natural/brill_pos_tagger";
-const rulesFilename = `${baseFolder}/data/English/tr_from_posjs.txt`;
-const lexiconFilename = `${baseFolder}/data/English/lexicon_from_posjs.json`;
-
-const lexicon = new natural.Lexicon(lexiconFilename, 'NN'); // 'NN' is the default category for unknown words
-const rules = new natural.RuleSet(rulesFilename);
-const tagger = new natural.BrillPOSTagger(lexicon, rules);
 const BASE_URL = process.env.BASE_URL || `http://localhost:${process.env.ALLOCATED_PORT}`;
 
+// Simplified tokenization function
+const tokenizeText = (text) => {
+    return text
+        .toLowerCase() // Convert to lowercase
+        .replace(/[^\w\s]/g, '') // Remove punctuation
+        .split(/\s+/); // Split by spaces (whitespace)
+};
+
+// Function to classify words as content or function words (without POS tagging)
+const isContentWord = (word) => {
+    const contentWords = [
+        'NN', 'NNS', 'NNP', 'NNPS',  // Nouns
+        'VB', 'VBD', 'VBG', 'VBN', 'VBP', 'VBZ',  // Verbs
+        'JJ', 'JJR', 'JJS',  // Adjectives
+        'RB', 'RBR', 'RBS'   // Adverbs
+    ];
+    // You can add rules or use a basic approximation (e.g., length-based or common function word lists)
+    return word.length > 3;  // Simplified assumption: content words tend to be longer than 3 characters
+};
 
 // Function to calculate Lexical Density
 const calculateLexicalDensity = (essaysText) => {
     // Tokenize the text
-    const tokenizer = new natural.WordTokenizer();
-    const tokens = tokenizer.tokenize(essaysText.toLowerCase());
-    console.log('Tokens:', tokens); // Debugging
+    const tokens = tokenizeText(essaysText);
 
     // Count unique words
     const uniqueWords = new Set(tokens).size;
-    console.log('Unique Words:', uniqueWords); // Debugging
-
-    // POS tagging to identify content words
-    const taggedWords = tagger.tag(tokens);
-    console.log('Tagged Words:', taggedWords.taggedWords); // Debugging
-
-    // Define content word tags (nouns, verbs, adjectives, adverbs)
-    const contentTags = [
-        'NN', 'NNS', 'NNP', 'NNPS', 
-        'VB', 'VBD', 'VBG', 'VBN', 'VBP', 'VBZ', 
-        'JJ', 'JJR', 'JJS', 
-        'RB', 'RBR', 'RBS'
-    ];
 
     // Count total words and content words
     const totalWords = tokens.length;
-    const contentWords = taggedWords.taggedWords.filter(word => contentTags.includes(word.tag)).length;
-    console.log('Total Words:', totalWords); // Debugging
-    console.log('Content Words:', contentWords); // Debugging
+    const contentWords = tokens.filter(isContentWord).length;
 
     // Calculate Lexical Density
     const lexicalDensity = ((contentWords / totalWords) * 100).toFixed(2);
@@ -53,7 +45,6 @@ const calculateLexicalDensity = (essaysText) => {
         totalWords,
         uniqueWords,
         contentWords,
-        taggedWords: taggedWords.taggedWords // For debugging
     };
 };
 

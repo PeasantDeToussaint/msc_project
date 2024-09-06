@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 
-const BASE_URL = import.meta.env.BASE_URL || `http://localhost:${import.meta.env.ALLOCATED_PORT}`;
+const BASE_URL = import.meta.env.VITE_BASE_URL || `http://localhost:${import.meta.env.ALLOCATED_PORT}`;
 
 // Fetcher function for different sections
 const fetchVocabularyData = async (section) => {
@@ -23,9 +23,9 @@ const fetchVocabularyData = async (section) => {
     case 'lexicalDensity':
     case 'overview':
       const [lexicalResponse, misspelledRes, advancedResponse] = await Promise.all([
-        axios.get(`${BASE_URL}/lexicalDensity/lexicalDensity`, { headers }),
-        axios.get(`${BASE_URL}/misSpellings/misSpellings`, { headers }),
-        axios.get(`${BASE_URL}/advancedVocabulary/advancedVocabulary`, { headers }),
+        axios.get(`${BASE_URL}/lexicalDensity`, { headers }),
+        axios.get(`${BASE_URL}/misSpellings`, { headers }),
+        axios.get(`${BASE_URL}/advancedVocabulary`, { headers }),
       ]);
       return {
         lexicalDensity: parseFloat(lexicalResponse.data.lexicalDensity) || 0,
@@ -38,7 +38,7 @@ const fetchVocabularyData = async (section) => {
         advancedWordsMessage: advancedResponse.data.message || '',
       };
     case 'advanced':
-      const advancedRes = await axios.get(`${BASE_URL}/advancedVocabulary/advancedVocabulary`, { headers });
+      const advancedRes = await axios.get(`${BASE_URL}/advancedVocabulary`, { headers });
       return {
         advancedWordsUsed: advancedRes.data.advancedWordsUsed || {},
         advancedWordsSuggestions: advancedRes.data.suggestions || [],
