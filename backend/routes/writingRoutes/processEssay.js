@@ -3,57 +3,39 @@ import OpenAI from 'openai';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import pool from '../../db.js'; // Import your database connection
-import authorize from '../../middleware/authorize.js'; // Import the authorization middleware
+import pool from '../../db.js';
+import authorize from '../../middleware/authorize.js';
 import jwt from "jsonwebtoken";
 
-// Resolve __filename and __dirname for ESM compatibility
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Initialize the router
 const router = Router();
 
-// Initialize the OpenAI client with the API key from environment variables
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-// Resolve the path to the instruction file and read its content
 const promptFilePath = path.resolve(__dirname, '../../utils', 'instruction_task2.txt');
 const promptContent = fs.readFileSync(promptFilePath, 'utf-8');
 
-// Define the POST route for processing the essay
 router.post('/processEssay', authorize, async (req, res) => {
   const authHeader = req.headers['authorization'];
-  console.log("Authorization Header:", authHeader);
-
   if (!authHeader) {
-    console.log("Authorization header is missing");
     return res.status(403).json({ message: 'Authorization header is missing' });
   }
 
   const token = authHeader.split(' ')[1];
-  console.log("Token:", token);
-
   if (!token) {
-    console.log("Token is missing");
     return res.status(403).json({ message: 'Token is missing' });
   }
 
   try {
-    // Verify the token and extract user information
-    const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY); 
-    console.log("Decoded Token:", decoded);
-
+    const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
     const userId = decoded.user.id;
-    console.log("User ID from Token:", userId);
 
     const { prompt, response } = req.body;
-    console.log("Prompt:", prompt);
-    console.log("Response:", response);
 
-    // Call OpenAI to process the essay
     const completion = await openai.chat.completions.create({
       model: 'gpt-4o-mini',
       messages: [
@@ -64,12 +46,8 @@ router.post('/processEssay', authorize, async (req, res) => {
     });
 
     const text = completion.choices[0].message.content;
-    console.log('Raw received text:', text);
-
-    // Parse the feedback text
     const feedback = parseFeedback(text);
 
-    // Store the essay, prompt, and overall score in the database
     const query = `
       INSERT INTO essays (user_id, prompt, essay, overall_score)
       VALUES ($1, $2, $3, $4) RETURNING id
@@ -84,7 +62,64 @@ router.post('/processEssay', authorize, async (req, res) => {
   }
 });
 
-// Helper function to parse the feedback text
+router.post('/elaborateFeedback', authorize, async (req, res) => {
+  const authHeader = req.headers['authorization'];
+  if (!authHeader) {
+    return res.status(403).json({ message: 'Authorization header is missing' });
+  }
+
+  const token = authHeader.split(' ')[1];
+  if (!token) {
+    return res.status(403).json({ message: 'Token is missing' });
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
+
+    const { prompt, response, section, currentFeedback } = req.body;
+
+    const elaborationPrompt = `You are an IELTS Writing Task 2 expert. You've been given a student's essay and initial feedback for a specific section. Your task is to provide a more detailed explanation of the feedback and offer specific suggestions for improvement.
+
+Question: ${prompt}
+
+Student's Essay: ${response}
+
+Section: ${section}
+Initial Feedback: ${currentFeedback}
+
+Please provide:
+1. A more detailed explanation of the strengths and weaknesses in this section.
+2. Specific examples from the essay that illustrate these points.
+3. Actionable suggestions for improvement, including example phrases or structures the student could use.
+4. A brief exercise or practice task that would help the student improve in this area.
+
+Your elaboration should be thorough but concise, aiming for about 200-250 words.`;
+
+    const completion = await openai.chat.completions.create({
+      model: 'gpt-4o-mini',
+      messages: [
+        { role: 'system', content: 'You are an IELTS Writing Task 2 expert providing detailed feedback.' },
+        { role: 'user', content: elaborationPrompt },
+      ],
+      n: 1,
+    });
+
+    const elaboration = completion.choices[0].message.content;
+
+    // Directly return the elaboration without storing it in the database
+    res.json({ elaboration });
+  } catch (error) {
+    console.error('Error elaborating feedback:', error);
+    if (error.response) {
+      console.error('API response:', error.response.data);
+      res.status(500).json({ error: 'Error occurred while elaborating feedback', details: error.response.data });
+    } else {
+      res.status(500).json({ error: 'Error occurred while elaborating feedback' });
+    }
+  }
+});
+
+
 function parseFeedback(text) {
   const feedback = {
     overallScore: 'N/A',
@@ -116,7 +151,6 @@ function parseFeedback(text) {
   return feedback;
 }
 
-// Helper functions to extract scores and feedback text
 function extractScore(section) {
   const match = section.match(/:\s*([0-9.]+)/);
   return match ? match[1] : 'N/A';

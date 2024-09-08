@@ -2,6 +2,7 @@ import express from 'express';
 import stopword from 'stopword';
 import axios from 'axios';
 import authorize from '../../middleware/authorize.js';
+
 const BASE_URL = process.env.BASE_URL || `http://localhost:${process.env.ALLOCATED_PORT}`;
 
 const router = express.Router();
@@ -14,23 +15,8 @@ const tokenizeText = (text) => {
         .split(/\s+/); // Split by spaces (whitespace)
 };
 
-// Fetch synonyms from an external API (Free Dictionary API)
-const fetchSynonymsFromAPI = async (word) => {
-    try {
-        const response = await axios.get(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`);
-        if (response.data.length > 0 && response.data[0].meanings.length > 0) {
-            const synonyms = response.data[0].meanings[0].definitions[0].synonyms;
-            return synonyms || [];
-        }
-        return [];
-    } catch (error) {
-        console.error(`Error fetching synonyms for word "${word}":`, error.message);
-        return [];
-    }
-};
-
-// Function to extract common words and suggest synonyms
-const extractCommonWords = async (essays) => {
+// Function to extract common words
+const extractCommonWords = (essays) => {
     let combinedText;
     if (typeof essays === 'string') {
         combinedText = essays;
@@ -62,18 +48,11 @@ const extractCommonWords = async (essays) => {
     // Get the top 100 most common words
     const topWords = sortedWords.slice(0, 100);
 
-    // Suggest synonyms for the top words
-    const results = await Promise.all(
-        topWords.map(async ([word, frequency]) => {
-            const synonyms = await fetchSynonymsFromAPI(word);
-
-            return {
-                word,
-                occurrences: frequency,
-                suggestions: synonyms.length > 0 ? synonyms.slice(0, 5) : ['No suggestions available'] // Limit to the top 5 synonyms
-            };
-        })
-    );
+    // Format the results
+    const results = topWords.map(([word, frequency]) => ({
+        word,
+        occurrences: frequency
+    }));
 
     return results;
 };
@@ -102,8 +81,8 @@ router.get('/repeatedWords', authorize, async (req, res) => {
     try {
         const essays = await fetchEssays(token);
 
-        // Extract common words and suggest synonyms
-        const commonWords = await extractCommonWords(essays);
+        // Extract common words
+        const commonWords = extractCommonWords(essays);
 
         res.json({ commonWords });
     } catch (err) {

@@ -2,7 +2,7 @@ import React from 'react';
 import { Route, Routes, Navigate, useLocation } from 'react-router-dom';
 import ListeningPracticeIntro from '../components/ListeningPracticeComponents/ListeningPracticeIntro';
 import About from '../components/About';
-import Homepage from '../components/Homepage';
+import Homepage from '../components/HomepageComponents/Homepage';
 import RegisterPage from '../components/RegisterPage';
 import ContactPage from '../components/ContactPage';
 import LoginPage from '../components/LoginPage';
@@ -24,11 +24,12 @@ import ReadingPracticeIntro from '../components/ReadingPracticeComponents/Readin
 import ReadingPractice from '../components/ReadingPracticeComponents/ReadingPractice';
 import VocabularyPracticeIntro from '../components/UserPageComponents/VocabularyPracticeIntro.jsx';
 import VocabularyPractice from '../components/UserPageComponents/VocabularyPractice';
+import PasswordReset from '../components/PasswordReset';
 
 function MainContent() {
   const { isAuthenticated } = useAuth();
   const location = useLocation();
-  const showNavigation = !['/LoginPage', '/RegisterPage'].includes(location.pathname);
+  const showNavigation = !['/LoginPage', '/RegisterPage', '/PasswordReset'].includes(location.pathname);
 
   return (
     <div className="flex flex-col h-screen">
@@ -38,6 +39,7 @@ function MainContent() {
           <Route path="/LoginPage" element={isAuthenticated ? <Navigate replace to="/Homepage" /> : <LoginPage />} />
           <Route path="/Homepage" element={isAuthenticated ? <Homepage /> : <Navigate replace to="/LoginPage" />} />
           <Route path="/RegisterPage" element={<RegisterPage />} />
+          <Route path="/PasswordReset" element={<PasswordReset />} />
           <Route path="/" element={isAuthenticated ? <Homepage /> : <Navigate replace to="/LoginPage" />} />
           <Route path="/ListeningPracticeIntro" element={isAuthenticated ? <ListeningPracticeIntro /> : <Navigate replace to="/LoginPage" />} />
           <Route path="/about" element={isAuthenticated ? <About /> : <Navigate replace to="/LoginPage" />} />

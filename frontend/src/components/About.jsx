@@ -1,116 +1,142 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { BookOpen, Headphones, PenTool, Mic, Award, Calendar, GraduationCap } from 'lucide-react';
+import React, { useState } from 'react'
+import { ScrollArea } from '@/components/ui/scroll-area'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
+import { BookOpen, Headphones, PenTool, Mic, Award, Calendar, GraduationCap, BookmarkIcon, ClipboardList, Lightbulb, Menu } from 'lucide-react'
 
-const SidebarItem = ({ targetId, children, isActive = false, isNested = false, onClick }) => (
-  <button
+const SidebarItem = ({ targetId, icon: Icon, children, isActive = false, onClick }) => (
+  <Button
+    variant="ghost"
+    className={`w-full justify-start ${isActive ? 'bg-muted' : ''}`}
     onClick={() => onClick(targetId)}
-    className={`flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-muted hover:text-foreground w-full text-left ${
-      isNested ? 'ml-4' : ''
-    } ${isActive ? 'bg-muted text-foreground' : 'text-muted-foreground'}`}
   >
+    <Icon className="mr-2 h-4 w-4" />
     {children}
-  </button>
-);
+  </Button>
+)
 
 const Section = ({ id, title, children }) => (
-  <section id={id} className="mb-8">
-    <h2 className="text-2xl font-bold mb-4 scroll-m-20">{title}</h2>
+  <section id={id} className="mb-8 scroll-mt-16">
+    <h2 className="text-2xl font-bold mb-4">{title}</h2>
     {children}
   </section>
-);
+)
+
+const Sidebar = ({ activeSection, setActiveSection }) => {
+  const handleClick = (sectionId) => {
+    setActiveSection(sectionId)
+    document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth' })
+  }
+
+  return (
+    <nav className="space-y-1">
+      <SidebarItem targetId="overview" icon={BookOpen} isActive={activeSection === 'overview'} onClick={handleClick}>
+        Overview
+      </SidebarItem>
+      <SidebarItem targetId="test-format" icon={GraduationCap} isActive={activeSection === 'test-format'} onClick={handleClick}>
+        Test Format
+      </SidebarItem>
+      <SidebarItem targetId="listening" icon={Headphones} isActive={activeSection === 'listening'} onClick={handleClick}>
+        Listening
+      </SidebarItem>
+      <SidebarItem targetId="reading" icon={BookOpen} isActive={activeSection === 'reading'} onClick={handleClick}>
+        Reading
+      </SidebarItem>
+      <SidebarItem targetId="writing" icon={PenTool} isActive={activeSection === 'writing'} onClick={handleClick}>
+        Writing
+      </SidebarItem>
+      <SidebarItem targetId="speaking" icon={Mic} isActive={activeSection === 'speaking'} onClick={handleClick}>
+        Speaking
+      </SidebarItem>
+      <SidebarItem targetId="scoring-system" icon={Award} isActive={activeSection === 'scoring-system'} onClick={handleClick}>
+        Scoring System
+      </SidebarItem>
+      <SidebarItem targetId="preparation-guide" icon={BookmarkIcon} isActive={activeSection === 'preparation-guide'} onClick={handleClick}>
+        Preparation Guide
+      </SidebarItem>
+      <SidebarItem targetId="preparation-tips" icon={Lightbulb} isActive={activeSection === 'preparation-tips'} onClick={handleClick}>
+        Preparation Tips
+      </SidebarItem>
+      <SidebarItem targetId="test-preparation" icon={ClipboardList} isActive={activeSection === 'test-preparation'} onClick={handleClick}>
+        Test Preparation
+      </SidebarItem>
+      <SidebarItem targetId="test-dates-and-locations" icon={Calendar} isActive={activeSection === 'test-dates-and-locations'} onClick={handleClick}>
+        Test Dates and Locations
+      </SidebarItem>
+    </nav>
+  )
+}
 
 export default function IELTSInfoPage() {
-  const [activeSection, setActiveSection] = useState('about-ielts');
-  const contentRef = useRef(null);
-
-  const handleSidebarClick = (targetId) => {
-    const targetElement = document.getElementById(targetId);
-    if (targetElement && contentRef.current) {
-      const scrollTop = targetElement.offsetTop - contentRef.current.offsetTop;
-      contentRef.current.scrollTo({ top: scrollTop, behavior: 'smooth' });
-    }
-  };
-
-  const handleScroll = () => {
-    if (!contentRef.current) return;
-
-    const sections = contentRef.current.querySelectorAll('section');
-    const scrollPosition = contentRef.current.scrollTop;
-
-    sections.forEach((section) => {
-      const sectionTop = section.offsetTop - contentRef.current.offsetTop;
-      const sectionHeight = section.clientHeight;
-      if (scrollPosition >= sectionTop - 50 && scrollPosition < sectionTop + sectionHeight - 50) {
-        setActiveSection(section.id);
-      }
-    });
-  };
-
-  useEffect(() => {
-    const scrollArea = contentRef.current;
-    if (scrollArea) {
-      scrollArea.addEventListener('scroll', handleScroll);
-      return () => scrollArea.removeEventListener('scroll', handleScroll);
-    }
-  }, []);
+  const [activeSection, setActiveSection] = useState('overview')
 
   return (
     <div className="flex min-h-screen bg-background">
-      <aside className="w-64 flex-col border-r bg-background hidden lg:flex fixed left-0 h-screen">
-        <ScrollArea className="flex-grow">
-          <nav className="flex flex-col space-y-1 px-4 py-6">
-            <SidebarItem targetId="about-ielts" isActive={activeSection === 'about-ielts'} onClick={handleSidebarClick}>
-              <BookOpen className="h-4 w-4" /> About IELTS
-            </SidebarItem>
-            <SidebarItem targetId="test-format" isActive={activeSection === 'test-format'} onClick={handleSidebarClick}>
-              <GraduationCap className="h-4 w-4" /> Test Format
-            </SidebarItem>
-            <SidebarItem targetId="listening" isNested isActive={activeSection === 'listening'} onClick={handleSidebarClick}>
-              <Headphones className="h-4 w-4" /> Listening
-            </SidebarItem>
-            <SidebarItem targetId="reading" isNested isActive={activeSection === 'reading'} onClick={handleSidebarClick}>
-              <BookOpen className="h-4 w-4" /> Reading
-            </SidebarItem>
-            <SidebarItem targetId="writing" isNested isActive={activeSection === 'writing'} onClick={handleSidebarClick}>
-              <PenTool className="h-4 w-4" /> Writing
-            </SidebarItem>
-            <SidebarItem targetId="speaking" isNested isActive={activeSection === 'speaking'} onClick={handleSidebarClick}>
-              <Mic className="h-4 w-4" /> Speaking
-            </SidebarItem>
-            <SidebarItem targetId="scoring-system" isActive={activeSection === 'scoring-system'} onClick={handleSidebarClick}>
-              <Award className="h-4 w-4" /> Scoring System
-            </SidebarItem>
-            <SidebarItem targetId="test-preparation" isActive={activeSection === 'test-preparation'} onClick={handleSidebarClick}>
-              <GraduationCap className="h-4 w-4" /> Test Preparation
-            </SidebarItem>
-            <SidebarItem targetId="test-dates-and-locations" isActive={activeSection === 'test-dates-and-locations'} onClick={handleSidebarClick}>
-              <Calendar className="h-4 w-4" /> Test Dates and Locations
-            </SidebarItem>
-          </nav>
-        </ScrollArea>
+      <aside className="w-64 border-r bg-background hidden lg:block">
+        <div className="sticky top-0 p-4 h-screen overflow-auto">
+          <Sidebar activeSection={activeSection} setActiveSection={setActiveSection} />
+        </div>
       </aside>
-      <div className="flex-1 ml-0 lg:ml-64">
-        <ScrollArea className="h-screen" ref={contentRef}>
-          <main className="px-4 py-8 sm:px-6 lg:px-8">
+      <div className="flex-1">
+        <header className="sticky top-0 z-10 bg-background border-b lg:hidden">
+          <div className="flex items-center justify-between p-4">
+            <h1 className="text-xl font-bold">IELTS Documentation</h1>
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="outline" size="icon">
+                  <Menu className="h-6 w-6" />
+                  <span className="sr-only">Open menu</span>
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left">
+                <div className="mt-6 w-full">
+                  <Sidebar activeSection={activeSection} setActiveSection={setActiveSection} />
+                </div>
+              </SheetContent>
+            </Sheet>
+          </div>
+        </header>
+        <main className="p-6 lg:p-8">
+          <ScrollArea className="h-[calc(100vh-4rem)] lg:h-screen">
             <div className="mx-auto max-w-3xl">
-              <h1 className="text-4xl font-bold mb-8">IELTS Documentation</h1>
+              <h1 className="text-4xl font-bold mb-8 lg:hidden">IELTS Documentation</h1>
               
-              <Section id="about-ielts" title="About IELTS">
+              <Section id="overview" title="Overview">
                 <p className="text-muted-foreground mb-4">
-                  The International English Language Testing System (IELTS) is the world's most popular English language proficiency test for higher education and global migration. Trusted by over 10,000 organizations in more than 140 countries, IELTS is your passport to international opportunities.
+                  The IELTS (International English Language Testing System) is a standardized test designed to assess English language proficiency for non-native English speakers. It consists of four main components: Listening, Reading, Writing, and Speaking.
                 </p>
+                <Card className="mb-4">
+                  <CardContent className="p-6">
+                    <h3 className="text-lg font-semibold mb-2">Speaking Practice</h3>
+                    <p className="mb-2">The IELTS Speaking Practice simulates a 11-14 minute face-to-face interview with a certified examiner. It is divided into three parts:</p>
+                    <ol className="list-decimal pl-5 space-y-2">
+                      <li><strong>Introduction and Interview (4-5 minutes):</strong> Answer questions about yourself and your family</li>
+                      <li><strong>Individual Long Turn (3-4 minutes):</strong> Speak about a given topic introduced by the examiner</li>
+                      <li><strong>Two-way Discussion (4-5 minutes):</strong> Have a longer discussion with the examiner about the topic from Part 2</li>
+                    </ol>
+                  </CardContent>
+                </Card>
+                <Card className="mb-4">
+                  <CardContent className="p-6">
+                    <h3 className="text-lg font-semibold mb-2">Writing Test</h3>
+                    <p className="mb-2">The IELTS Writing Test lasts for 60 minutes, and you will need to complete two writing tasks:</p>
+                    <ul className="list-disc pl-5 space-y-2">
+                      <li><strong>Task 1:</strong> Write a report summarizing, describing, or explaining visual information (graphs, charts, tables, etc.) in at least 150 words.</li>
+                      <li><strong>Task 2:</strong> Write an essay responding to a point of view, argument, or problem in at least 250 words.</li>
+                    </ul>
+                  </CardContent>
+                </Card>
                 <Card>
                   <CardContent className="p-6">
-                    <h3 className="text-lg font-semibold mb-2">Key Facts</h3>
-                    <ul className="list-disc pl-5 space-y-1">
-                      <li>Accepted by over 10,000 organizations worldwide</li>
-                      <li>Available in two test formats: Academic and General Training</li>
-                      <li>Results typically available within 13 days</li>
-                      <li>Valid for 2 years from the test date</li>
-                    </ul>
+                    <h3 className="text-lg font-semibold mb-2">Listening Test</h3>
+                    <p className="mb-2">The IELTS Listening Test consists of four sections:</p>
+                    <ol className="list-decimal pl-5 space-y-2">
+                      <li><strong>Part 1:</strong> Social Needs - Everyday conversations and specific information</li>
+                      <li><strong>Part 2:</strong> Social Context - Spoken descriptions about everyday situations</li>
+                      <li><strong>Part 3:</strong> Educational Context - Discussions related to educational settings</li>
+                      <li><strong>Part 4:</strong> Academic Subject - Academic lectures or presentations</li>
+                    </ol>
                   </CardContent>
                 </Card>
               </Section>
@@ -119,6 +145,17 @@ export default function IELTSInfoPage() {
                 <p className="text-muted-foreground mb-4">
                   IELTS evaluates your English language abilities across four key areas: Listening, Reading, Writing, and Speaking. Each section is designed to assess different aspects of your language proficiency.
                 </p>
+                <Card>
+                  <CardContent className="p-6">
+                    <h3 className="text-lg font-semibold mb-2">Test Components</h3>
+                    <ul className="list-disc pl-5 space-y-2">
+                      <li><strong>Listening:</strong> 30 minutes, 40 questions</li>
+                      <li><strong>Reading:</strong> 60 minutes, 40 questions</li>
+                      <li><strong>Writing:</strong> 60 minutes, 2 tasks</li>
+                      <li><strong>Speaking:</strong> 11-14 minutes, face-to-face interview</li>
+                    </ul>
+                  </CardContent>
+                </Card>
               </Section>
 
               <Section id="listening" title="Listening">
@@ -203,6 +240,67 @@ export default function IELTSInfoPage() {
                 </Card>
               </Section>
 
+              <Section id="preparation-guide" title="Preparation Guide">
+                <p className="text-muted-foreground mb-4">
+                  Here's a comprehensive guide to help you prepare for the IELTS test:
+                </p>
+                <ol className="list-decimal pl-5 space-y-2">
+                  <li><strong>Understand the test format and requirements:</strong> Familiarize yourself with the IELTS test structure, question types, and time limits for each section.</li>
+                  <li><strong>Assess your current English level:</strong> Take a practice test to identify your strengths and weaknesses.</li>
+                  <li><strong>Set a target score:</strong> Determine the IELTS score you need for your specific goals (e.g., university admission, immigration).</li>
+                  <li><strong>Create a study plan:</strong> Develop a structured schedule that covers all four test sections (Listening, Reading, Writing, and Speaking).</li>
+                  <li><strong>Build your vocabulary:</strong> Focus on academic and topic-specific vocabulary relevant to the IELTS test.</li>
+                  <li><strong>Practice regularly:</strong> Use official IELTS practice materials and past papers to familiarize yourself with the test format and improve your skills.</li>
+                  <li><strong>Improve your time management:</strong> Practice completing tasks within the given time limits to enhance your efficiency during the actual test.</li>
+                  <li><strong>Seek feedback:</strong> Consider joining a study group or working with a tutor to get constructive feedback on your performance.</li>
+                  <li><strong>Focus on your weakest areas:</strong> Dedicate extra time to improving the skills you find most challenging.</li>
+                  <li><strong>Stay informed:</strong> Keep up with current events and read widely to improve your general knowledge and language skills.</li>
+                </ol>
+              </Section>
+
+              <Section id="preparation-tips" title="Preparation Tips">
+                <p className="text-muted-foreground mb-4">
+                  Here are some valuable tips to help you prepare effectively for the IELTS exam:
+                </p>
+                <ol className="list-decimal pl-5 space-y-4">
+                  <li>
+                    <strong>Understand the exam format and requirements:</strong>
+                    <ul className="list-disc pl-5 mt-2 space-y-1">
+                      <li>Familiarize yourself with the exam structure, content, timing, and scoring criteria.</li>
+                      <li>Review official IELTS information on their website for the most up-to-date details.</li>
+                    </ul>
+                  </li>
+                  <li>
+                    <strong>Assess your current English level:</strong>
+                    <ul className="list-disc pl-5 mt-2 space-y-1">
+                      <li>Take a professional level test or a practice IELTS test to understand your starting point.</li>
+                      <li>This will help you identify areas that need improvement.</li>
+                    </ul>
+                  </li>
+                  <li>
+                    <strong>Set a target score and exam date:</strong>
+                    <ul className="list-disc pl-5 mt-2 space-y-1">
+                      <li>Determine the IELTS score required for your goals (e.g., university admission, immigration).</li>
+                      <li>Choose an exam date that allows sufficient preparation time.</li>
+                    </ul>
+                  </li>
+                  <li>
+                    <strong>Create a study plan:</strong>
+                    <ul className="list-disc pl-5 mt-2 space-y-1">
+                      <li>Develop a structured schedule covering all four test sections.</li>
+                      <li>Allocate more time to areas that need improvement.</li>
+                    </ul>
+                  </li>
+                  <li>
+                    <strong>Build your vocabulary:</strong>
+                    <ul className="list-disc pl-5 mt-2 space-y-1">
+                      <li>Focus on academic and topic-specific vocabulary relevant to IELTS.</li>
+                      <li>Use resources like "Cambridge IELTS Vocabulary: Essential Words and Phrases for IELTS".</li>
+                    </ul>
+                  </li>
+                </ol>
+              </Section>
+
               <Section id="test-preparation" title="Test Preparation">
                 <p className="text-muted-foreground mb-4">
                   Proper preparation is key to achieving your desired IELTS score. Here are some effective strategies to help you prepare:
@@ -233,9 +331,9 @@ export default function IELTSInfoPage() {
                 </Button>
               </Section>
             </div>
-          </main>
-        </ScrollArea>
+          </ScrollArea>
+        </main>
       </div>
     </div>
-  );
+  )
 }

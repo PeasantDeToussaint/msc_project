@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from '@/components/ui/button'
 import { Toaster } from '@/components/ui/toaster'
 import { useToast } from '@/components/ui/use-toast'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
@@ -14,6 +14,29 @@ import { Edit3, Mic, Headphones, Plus, Trash2, Image as ImageIcon, Search } from
 
 const BASE_URL = import.meta.env.VITE_BASE_URL || `http://localhost:${import.meta.env.VITE_ALLOCATED_PORT}`;
 
+
+
+const DeleteConfirmationDialog = ({ isOpen, onClose, onConfirm, questionText }) => (
+  <Dialog open={isOpen} onOpenChange={onClose}>
+    <DialogContent>
+      <DialogHeader>
+        <DialogTitle>Confirm Deletion</DialogTitle>
+        <DialogDescription>
+          Are you sure you want to delete this question? This action cannot be undone.
+        </DialogDescription>
+      </DialogHeader>
+      <p className="py-4 text-sm text-gray-500">Question: {questionText}</p>
+      <DialogFooter>
+        <Button variant="outline" onClick={onClose}>
+          Cancel
+        </Button>
+        <Button variant="destructive" onClick={onConfirm}>
+          Delete
+        </Button>
+      </DialogFooter>
+    </DialogContent>
+  </Dialog>
+)
 
 
 const endpoints = {
@@ -175,6 +198,7 @@ export default function Component() {
       'image/gif': ['.gif'],
     },
   })
+
 
   return (
     <div className="flex flex-col h-full">
@@ -338,39 +362,52 @@ export default function Component() {
   )
 }
 
-const QuestionCard = ({ question, onEdit, onDelete }) => (
-  <Card className="hover:shadow-lg transition-shadow duration-300">
-    <CardHeader>
-      <CardTitle className="flex justify-between items-center text-sm">
-        <span className="truncate">{question.question.substring(0, 100)}...</span>
-        <div className="flex space-x-2">
-          <Button variant="ghost" size="sm" onClick={onEdit}>
-            <Edit3 className="h-4 w-4 text-blue-500" />
-          </Button>
-          <Button variant="ghost" size="sm" onClick={onDelete}>
-            <Trash2 className="h-4 w-4 text-red-500" />
-          </Button>
-        </div>
-      </CardTitle>
-    </CardHeader>
-    <CardContent>
-      <p className="text-xs text-gray-500">
-        {question.type ? `Type: ${question.type}` : 
-         question.category ? `Category: ${question.category}` : 
-         question.genre ? `Genre: ${question.genre}` : 
-         question.part_id ? `Part: ${question.part_id}` : 'N/A'}
-      </p>
-      {question.image_url && (
-        <div className="mt-2 relative h-32 w-full">
-          <img src={`${BASE_URL}/uploads/${question.image_url}`} alt="Question" className="absolute inset-0 w-full h-full object-cover rounded" />
-          <div className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center">
-            <ImageIcon className="h-8 w-8 text-white" />
+const QuestionCard = ({ question, onEdit, onDelete }) => {
+  const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false)
+
+  return (
+    <Card className="hover:shadow-lg transition-shadow duration-300">
+      <CardHeader>
+        <CardTitle className="flex justify-between items-center text-sm">
+          <span className="truncate">{question.question.substring(0, 100)}...</span>
+          <div className="flex space-x-2">
+            <Button variant="ghost" size="sm" onClick={onEdit}>
+              <Edit3 className="h-4 w-4 text-blue-500" />
+            </Button>
+            <Button variant="ghost" size="sm" onClick={() => setShowDeleteConfirmation(true)}>
+              <Trash2 className="h-4 w-4 text-red-500" />
+            </Button>
           </div>
-        </div>
-      )}
-    </CardContent>
-  </Card>
-)
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <p className="text-xs text-gray-500">
+          {question.type ? `Type: ${question.type}` : 
+           question.category ? `Category: ${question.category}` : 
+           question.genre ? `Genre: ${question.genre}` : 
+           question.part_id ? `Part: ${question.part_id}` : 'N/A'}
+        </p>
+        {question.image_url && (
+          <div className="mt-2 relative h-32 w-full">
+            <img src={`${BASE_URL}/uploads/${question.image_url}`} alt="Question" className="absolute inset-0 w-full h-full object-cover rounded" />
+            <div className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center">
+              <ImageIcon className="h-8 w-8 text-white" />
+            </div>
+          </div>
+        )}
+      </CardContent>
+      <DeleteConfirmationDialog
+        isOpen={showDeleteConfirmation}
+        onClose={() => setShowDeleteConfirmation(false)}
+        onConfirm={() => {
+          onDelete(question.id)
+          setShowDeleteConfirmation(false)
+        }}
+        questionText={question.question}
+      />
+    </Card>
+  )
+}
 
 const AddEditQuestionDialog = ({ isOpen, onClose, onSave, question, section, subSection, getRootProps, getInputProps, imageFile }) => (
   <Dialog open={isOpen} onOpenChange={onClose}>

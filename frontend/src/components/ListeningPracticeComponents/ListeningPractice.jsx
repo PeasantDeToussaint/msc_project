@@ -12,6 +12,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Play, Pause, SkipBack, SkipForward, BarChart2, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { NotesSheet } from './Note';
 
 const BASE_URL = import.meta.env.VITE_BASE_URL || `http://localhost:${import.meta.env.VITE_ALLOCATED_PORT}`;
 
@@ -284,12 +285,13 @@ export default function ListeningPractice() {
   const [currentSection, setCurrentSection] = useState("section1");
   const [showUnansweredWarning, setShowUnansweredWarning] = useState(false);
   const [unansweredQuestions, setUnansweredQuestions] = useState(0);
+  const [progress, setProgress] = useState(0);
 
   useEffect(() => {
     const fetchTestData = async () => {
       try {
         setIsLoading(true);
-        const url = `${BACKEND_URL}/listeningQuestions/${testId}`;
+        const url = `${BASE_URL}/listeningQuestions/${testId}`;
         console.log('Fetching test data from:', url);
         const response = await fetch(url);
         if (!response.ok) {
@@ -312,7 +314,15 @@ export default function ListeningPractice() {
   }, [testId]);
 
   const handleAnswer = (questionId, answer) => {
-    setUserAnswers(prev => ({ ...prev, [questionId]: answer }));
+    setUserAnswers(prev => {
+      const newAnswers = { ...prev, [questionId]: answer };
+      // Calculate progress
+      const answeredCount = Object.values(newAnswers).filter(a => a !== '').length;
+      const totalQuestions = testData ? testData.questions.length : 0;
+      const newProgress = (answeredCount / totalQuestions) * 100;
+      setProgress(newProgress);
+      return newAnswers;
+    });
   };
 
   const calculateScore = (sectionQuestions) => {
@@ -427,7 +437,7 @@ export default function ListeningPractice() {
             <CardContent className="space-y-4">
               {imageId !== 'no_image' && (
                 <img 
-                  src={`${BACKEND_URL}/listeningQuestions/image/${questions[0].audio_recording_id}/${questions[0].section}`}
+                  src={`${BASE_URL}/listeningQuestions/image/${questions[0].audio_recording_id}/${questions[0].section}`}
                   alt="Map or diagram to label"
                   className="w-full h-auto rounded-lg shadow-md mb-4"
                   onError={(e) => {
@@ -491,9 +501,13 @@ export default function ListeningPractice() {
   }
 
   return (
-    <div className="container mx-auto p-8 max-w-screen-xl">
+<div className="container mx-auto p-8 max-w-screen-xl">
       <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-800">Listening Practice Test {testData.audio.id}</h1>
+        <h1 className="text-3xl font-bold text-gray-800 mb-4">Listening Practice Test {testData.audio.id}</h1>
+        <div className="w-full max-w-md mx-auto">
+          <Progress value={progress} className="w-full" />
+          <p className="text-sm text-gray-600 mt-2">Progress: {Math.round(progress)}%</p>
+        </div>
       </div>
       <div className="grid grid-cols-12 gap-8">
         <div className="col-span-3 space-y-6">
@@ -514,6 +528,7 @@ export default function ListeningPractice() {
               </ul>
             </CardContent>
           </Card>
+          <NotesSheet />
         </div>
         <div className="col-span-9">
           <Tabs value={currentSection} onValueChange={setCurrentSection} className="w-full">

@@ -1,22 +1,25 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { Progress } from "@/components/ui/progress";
-import { Toaster } from "@/components/ui/toaster";
-import { useToast } from "@/components/ui/use-toast";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Mic, Square, RotateCcw, Volume2, Home, Settings, Loader } from 'lucide-react';
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { convertWebmToWav } from '../../lib/audioConverter';
-const BASE_URL = import.meta.env.VITE_BASE_URL || `http://localhost:${import.meta.env.VITE_ALLOCATED_PORT}`;
+'use client'
 
+import React, { useState, useCallback, useEffect } from 'react'
+import { Button } from "@/components/ui/button"
+import { Progress } from "@/components/ui/progress"
+import { Toaster } from "@/components/ui/toaster"
+import { useToast } from "@/components/ui/use-toast"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Mic, Square, RotateCcw, Volume2, Home, Settings, Loader, HelpCircle } from 'lucide-react'
+import { Badge } from "@/components/ui/badge"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Label } from "@/components/ui/label"
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { useNavigate } from 'react-router-dom'
+import { motion, AnimatePresence } from 'framer-motion'
+import { convertWebmToWav } from '../../lib/audioConverter'
 
+const BASE_URL = import.meta.env.VITE_BASE_URL || `http://localhost:${import.meta.env.VITE_ALLOCATED_PORT}`
 
 const topics = {
   part1: [
@@ -51,13 +54,13 @@ const topics = {
     'Personal', 'Business', 'Decision', 'Art', 'Books', 'Electronic Devices', 'Something Difficult to Use',
     'Science', 'A Challenging Thing You Did'
   ]
-};
+}
 
 function useAudioRecorder(timeLimitInSeconds, onRecordingStop) {
-  const [isRecording, setIsRecording] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(timeLimitInSeconds);
-  const [audioBlobs, setAudioBlobs] = useState([]);
-  const [capturedStream, setCapturedStream] = useState(null);
+  const [isRecording, setIsRecording] = useState(false)
+  const [timeLeft, setTimeLeft] = useState(timeLimitInSeconds)
+  const [audioBlobs, setAudioBlobs] = useState([])
+  const [capturedStream, setCapturedStream] = useState(null)
 
   const startRecording = useCallback(async () => {
     try {
@@ -65,66 +68,66 @@ function useAudioRecorder(timeLimitInSeconds, onRecordingStop) {
         audio: {
           echoCancellation: true,
         }
-      });
+      })
 
-      setAudioBlobs([]);
-      setCapturedStream(stream);
-      setIsRecording(true);
-      setTimeLeft(timeLimitInSeconds);
+      setAudioBlobs([])
+      setCapturedStream(stream)
+      setIsRecording(true)
+      setTimeLeft(timeLimitInSeconds)
 
       const recorder = new MediaRecorder(stream, {
         mimeType: 'audio/webm'
-      });
+      })
 
       recorder.addEventListener('dataavailable', event => {
-        setAudioBlobs(prevBlobs => [...prevBlobs, event.data]);
-      });
+        setAudioBlobs(prevBlobs => [...prevBlobs, event.data])
+      })
 
       recorder.addEventListener('stop', () => {
-        const audioBlob = new Blob(audioBlobs, { type: 'audio/webm' });
-        onRecordingStop(audioBlob);  // Automatically trigger onRecordingStop when recording stops
-      });
+        const audioBlob = new Blob(audioBlobs, { type: 'audio/webm' })
+        onRecordingStop(audioBlob)
+      })
 
-      recorder.start(1000);
+      recorder.start(1000)
 
       const timer = setInterval(() => {
         setTimeLeft(prevTime => {
           if (prevTime <= 1) {
-            clearInterval(timer);
-            recorder.stop();  // This will also trigger the 'stop' event listener
-            setIsRecording(false);
-            return 0;
+            clearInterval(timer)
+            recorder.stop()
+            setIsRecording(false)
+            return 0
           }
-          return prevTime - 1;
-        });
-      }, 1000);
+          return prevTime - 1
+        })
+      }, 1000)
 
       return () => {
-        clearInterval(timer);
-        recorder.stop();
-        stream.getTracks().forEach(track => track.stop());
-      };
+        clearInterval(timer)
+        recorder.stop()
+        stream.getTracks().forEach(track => track.stop())
+      }
     } catch (error) {
-      console.error('Error starting recording:', error);
-      throw error;
+      console.error('Error starting recording:', error)
+      throw error
     }
-  }, [timeLimitInSeconds, audioBlobs, onRecordingStop]);
+  }, [timeLimitInSeconds, audioBlobs, onRecordingStop])
 
   const stopRecording = useCallback(() => {
     if (capturedStream) {
-      capturedStream.getTracks().forEach(track => track.stop());
+      capturedStream.getTracks().forEach(track => track.stop())
     }
-    setIsRecording(false);
-    const audioBlob = new Blob(audioBlobs, { type: 'audio/webm' });
-    return audioBlob;
-  }, [audioBlobs, capturedStream]);
+    setIsRecording(false)
+    const audioBlob = new Blob(audioBlobs, { type: 'audio/webm' })
+    return audioBlob
+  }, [audioBlobs, capturedStream])
 
   return {
     isRecording,
     timeLeft,
     startRecording,
     stopRecording
-  };
+  }
 }
 
 const QuestionCard = ({ question }) => (
@@ -136,7 +139,7 @@ const QuestionCard = ({ question }) => (
       <p className="text-sm font-medium">{question}</p>
     </CardContent>
   </Card>
-);
+)
 
 const RecordingControls = ({ isRecording, onRecord, onStop }) => (
   <div className="flex items-center justify-center gap-4">
@@ -161,14 +164,14 @@ const RecordingControls = ({ isRecording, onRecord, onStop }) => (
       </Button>
     )}
   </div>
-);
+)
 
 const RecordingProgress = ({ timeLeft, totalTime }) => (
   <div className="space-y-4">
     <Progress value={(timeLeft / totalTime) * 100} className="w-full h-2" />
     <p className="text-center text-sm font-medium">{timeLeft} seconds remaining</p>
   </div>
-);
+)
 
 const TranscriptionCard = ({ transcription }) => (
   <Card className="bg-gradient-to-br from-secondary/10 to-primary/10 shadow-lg">
@@ -181,7 +184,7 @@ const TranscriptionCard = ({ transcription }) => (
       </ScrollArea>
     </CardContent>
   </Card>
-);
+)
 
 const FeedbackCard = ({ feedback }) => (
   <Card className="bg-gradient-to-br from-primary/10 to-secondary/10 shadow-lg">
@@ -198,7 +201,7 @@ const FeedbackCard = ({ feedback }) => (
       </ScrollArea>
     </CardContent>
   </Card>
-);
+)
 
 const TopicSelection = ({ selectedTopics, onTopicChange }) => {
   return (
@@ -227,65 +230,66 @@ const TopicSelection = ({ selectedTopics, onTopicChange }) => {
         </TabsContent>
       ))}
     </Tabs>
-  );
-};
+  )
+}
 
 export default function Component() {
-  const [questions, setQuestions] = useState({ part1: null, part2: null, part3: null });
-  const [currentPart, setCurrentPart] = useState('part1');
-  const [transcription, setTranscription] = useState('');
-  const [feedback, setFeedback] = useState(null);
-  const [selectedTopics, setSelectedTopics] = useState({ part1: [], part2: [], part3: [] });
-  const [isLoading, setIsLoading] = useState(false);
-  const { toast } = useToast();
-  const navigate = useNavigate();
+  const [questions, setQuestions] = useState({ part1: null, part2: null, part3: null })
+  const [currentPart, setCurrentPart] = useState('part1')
+  const [transcription, setTranscription] = useState('')
+  const [feedback, setFeedback] = useState(null)
+  const [selectedTopics, setSelectedTopics] = useState({ part1: [], part2: [], part3: [] })
+  const [isLoading, setIsLoading] = useState(false)
+  const [isHelpOpen, setIsHelpOpen] = useState(false)
+  const { toast } = useToast()
+  const navigate = useNavigate()
 
   const {
     isRecording,
     timeLeft,
     startRecording,
     stopRecording
-  } = useAudioRecorder(questions[currentPart]?.time_limit || 0);
+  } = useAudioRecorder(questions[currentPart]?.time_limit || 0, handleStopRecording)
 
   const fetchQuestions = useCallback(async (topicsToFetch = null) => {
     try {
-      const endpoint = topicsToFetch ? `${BASE_URL}/speakingQuestions/selected-questions` : `${BASE_URL}/speakingQuestions/random-questions`;
-      const method = topicsToFetch ? 'POST' : 'GET';
-      const body = topicsToFetch ? JSON.stringify(topicsToFetch) : undefined;
-      const headers = topicsToFetch ? { 'Content-Type': 'application/json' } : undefined;
+      const endpoint = topicsToFetch ? `${BASE_URL}/speakingQuestions/selected-questions` : `${BASE_URL}/speakingQuestions/random-questions`
+      const method = topicsToFetch ? 'POST' : 'GET'
+      const body = topicsToFetch ? JSON.stringify(topicsToFetch) : undefined
+      const headers = topicsToFetch ? { 'Content-Type': 'application/json' } : undefined
 
-      const response = await fetch(endpoint, { method, body, headers });
+      const response = await fetch(endpoint, { method, body, headers })
 
       if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
+        throw new Error(`HTTP error! Status: ${response.status}`)
       }
 
-      const data = await response.json();
+      const data = await response.json()
       setQuestions({
         part1: data.part1[0] || null,
         part2: data.part2[0] || null,
         part3: data.part3[0] || null,
-      });
-      setTranscription('');
-      setFeedback(null);
+      })
+      setTranscription('')
+      setFeedback(null)
     } catch (error) {
-      console.error('Error fetching questions:', error);
+      console.error('Error fetching questions:', error)
       toast({
         title: 'Error',
         description: `Failed to fetch questions: ${error.message}`,
         variant: 'destructive',
-      });
+      })
     }
-  }, [toast]);
+  }, [toast])
 
   useEffect(() => {
-    fetchQuestions();
-  }, [fetchQuestions]);
+    fetchQuestions()
+  }, [fetchQuestions])
 
   useEffect(() => {
-    setTranscription('');
-    setFeedback(null);
-  }, [currentPart]);
+    setTranscription('')
+    setFeedback(null)
+  }, [currentPart])
 
   const handleRecordClick = async () => {
     if (isRecording) {
@@ -293,50 +297,49 @@ export default function Component() {
         title: "Recording in Progress",
         description: "Please wait until the current recording is completed.",
         variant: "warning"
-      });
-      return;
+      })
+      return
     }
 
-    setTranscription('');
-    setFeedback(null);
-    await startRecording();
-  };
+    setTranscription('')
+    setFeedback(null)
+    await startRecording()
+  }
 
-  const handleStopRecording = async () => {
-    setIsLoading(true);
-    const audioBlob = await stopRecording();
+  async function handleStopRecording(audioBlob) {
+    setIsLoading(true)
 
     if (!audioBlob || audioBlob.size === 0) {
-      setIsLoading(false);
+      setIsLoading(false)
       toast({
         title: 'Error',
         description: "Failed to process audio: Invalid audio blob",
         variant: 'destructive'
-      });
-      return;
+      })
+      return
     }
 
     try {
-      console.log('Starting conversion to WAV');
-      const wavBlob = await convertWebmToWav(audioBlob);
-      console.log("WAV Blob size:", wavBlob.size);
-      console.log('Conversion to WAV completed');
+      console.log('Starting conversion to WAV')
+      const wavBlob = await convertWebmToWav(audioBlob)
+      console.log("WAV Blob size:", wavBlob.size)
+      console.log('Conversion to WAV completed')
 
-      const formData = new FormData();
-      formData.append('audio', wavBlob, 'audio.wav');
+      const formData = new FormData()
+      formData.append('audio', wavBlob, 'audio.wav')
 
       const response = await fetch(`${BASE_URL}/audio/process-audio`, {
         method: 'POST',
         body: formData
-      });
+      })
 
       if (response.ok) {
-        const data = await response.json();
-        setTranscription(data.transcription);
+        const data = await response.json()
+        setTranscription(data.transcription)
         toast({
           title: "Transcription Completed",
           description: "Your audio has been transcribed.",
-        });
+        })
 
         // Fetch feedback using the transcribed text
         const feedbackResponse = await fetch(`${BASE_URL}/transcription/processTranscription`, {
@@ -345,71 +348,71 @@ export default function Component() {
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({ transcription: data.transcription })
-        });
+        })
 
         if (feedbackResponse.ok) {
-          const feedbackData = await feedbackResponse.json();
-          setFeedback(feedbackData);
+          const feedbackData = await feedbackResponse.json()
+          setFeedback(feedbackData)
           toast({
             title: "Feedback Received",
             description: "Your feedback has been successfully retrieved.",
-          });
+          })
         } else {
-          throw new Error(`HTTP error! Status: ${feedbackResponse.status}`);
+          throw new Error(`HTTP error! Status: ${feedbackResponse.status}`)
         }
 
       } else {
-        const errorText = await response.text();
-        throw new Error(`HTTP error! Status: ${response.status}, Message: ${errorText}`);
+        const errorText = await response.text()
+        throw new Error(`HTTP error! Status: ${response.status}, Message: ${errorText}`)
       }
     } catch (error) {
-      console.error('Error processing audio:', error);
+      console.error('Error processing audio:', error)
       toast({
         title: 'Error',
         description: `Failed to process audio: ${error.message}`,
         variant: 'destructive'
-      });
+      })
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
   const handleNavigateHome = () => {
-    navigate('/');
-  };
+    navigate('/')
+  }
 
   const handleTopicChange = (part, topic, checked) => {
     setSelectedTopics((prev) => {
-      const newSelected = { ...prev };
+      const newSelected = { ...prev }
       if (checked) {
-        newSelected[part].push(topic);
+        newSelected[part].push(topic)
       } else {
-        newSelected[part] = newSelected[part].filter((t) => t !== topic);
+        newSelected[part] = newSelected[part].filter((t) => t !== topic)
       }
-      return newSelected;
-    });
-  };
+      return newSelected
+    })
+  }
 
   const handleApplyTopics = (closeSheet) => {
-    const hasSelectedTopics = Object.values(selectedTopics).some(part => part.length > 0);
+    const hasSelectedTopics = Object.values(selectedTopics).some(part => part.length > 0)
     if (hasSelectedTopics) {
       const topicsToFetch = {
         part1: selectedTopics.part1.length > 0 ? selectedTopics.part1 : null,
         part2: selectedTopics.part2.length > 0 ? selectedTopics.part2 : null,
         part3: selectedTopics.part3.length > 0 ? selectedTopics.part3 : null,
-      };
-      fetchQuestions(topicsToFetch);
+      }
+      fetchQuestions(topicsToFetch)
     } else {
-      fetchQuestions();
+      fetchQuestions()
     }
-    closeSheet();
-  };
+    closeSheet()
+  }
 
   const handleNewQuestion = () => {
-    fetchQuestions();
-  };
+    fetchQuestions()
+  }
 
-  const currentQuestion = questions[currentPart];
+  const currentQuestion = questions[currentPart]
 
   return (
     <div className="container mx-auto px-4 py-12 md:px-6 lg:px-8">
@@ -425,37 +428,93 @@ export default function Component() {
             </div>
             <Badge variant="outline" className="text-sm">IELTS Speaking Practice</Badge>
             <div className="flex items-center gap-2">
-              <Button variant="outline" onClick={handleNewQuestion} size="icon" title="Get a new question">
-                <RotateCcw className="h-4 w-4" />
-                <span className="sr-only">Get a new question</span>
-              </Button>
-              <Sheet>
-                <SheetTrigger asChild>
-                  <Button variant="outline" size="icon">
-                    <Settings className="h-4 w-4" />
-                    <span className="sr-only">Open settings</span>
-                  </Button>
-                </SheetTrigger>
-                <SheetContent>
-                  <SheetHeader>
-                    <SheetTitle>Topic Selection</SheetTitle>
-                    <SheetDescription>
-                      Choose topics for each part of the IELTS Speaking test
-                    </SheetDescription>
-                  </SheetHeader>
-                  <div className="py-4">
-                    <TopicSelection
-                      selectedTopics={selectedTopics}
-                      onTopicChange={handleTopicChange}
-                    />
-                  </div>
-                  <SheetTrigger asChild>
-                    <Button onClick={() => handleApplyTopics(() => {})} className="w-full mt-4">
-                      Apply Topics
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button variant="outline" onClick={handleNewQuestion} size="icon" title="Get a new question">
+                      <RotateCcw className="h-4 w-4" />
+                      <span className="sr-only">Get a new question</span>
                     </Button>
-                  </SheetTrigger>
-                </SheetContent>
-              </Sheet>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Click to get a new set of questions</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Sheet>
+                      <SheetTrigger asChild>
+                        <Button variant="outline" size="icon">
+                          <Settings className="h-4 w-4" />
+                          <span className="sr-only">Open settings</span>
+                        </Button>
+                      </SheetTrigger>
+                      <SheetContent>
+                        <SheetHeader>
+                          <SheetTitle>Topic Selection</SheetTitle>
+                          <SheetDescription>
+                            Choose topics for each part of the IELTS Speaking test
+                          </SheetDescription>
+                        </SheetHeader>
+                        <div className="py-4">
+                          <TopicSelection
+                            selectedTopics={selectedTopics}
+                            onTopicChange={handleTopicChange}
+                          />
+                        </div>
+                        <SheetTrigger asChild>
+                          <Button onClick={() => handleApplyTopics(() => {})} className="w-full mt-4">
+                            Apply Topics
+                          </Button>
+                        </SheetTrigger>
+                      </SheetContent>
+                    </Sheet>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Open settings to select topics</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+
+              <Dialog open={isHelpOpen} onOpenChange={setIsHelpOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="ghost" size="icon">
+                    <HelpCircle className="h-4 w-4" />
+                    <span className="sr-only">Help</span>
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[425px]">
+                  <DialogHeader>
+                    <DialogTitle>How to use Refresh and Settings</DialogTitle>
+                    <DialogDescription>
+                      Learn how to customize your IELTS Speaking Practice experience.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="grid gap-4 py-4">
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <RotateCcw className="h-4 w-4 justify-self-end" />
+                      <div className="col-span-3">
+                        <h3 className="font-semibold">Refresh Questions</h3>
+                        <p className="text-sm text-muted-foreground">
+                          Click this button to get a new set of random questions for all parts.
+                        </p>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Settings className="h-4 w-4 justify-self-end" />
+                      <div className="col-span-3">
+                        <h3 className="font-semibold">Topic Selection</h3>
+                        <p className="text-sm text-muted-foreground">
+                          Open settings to choose specific topics for each part of the test. Apply your selection to get tailored questions.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
             </div>
           </div>
           <Tabs value={currentPart} onValueChange={setCurrentPart} className="w-full">
@@ -493,7 +552,7 @@ export default function Component() {
                   <RecordingControls
                     isRecording={isRecording}
                     onRecord={handleRecordClick}
-                    onStop={handleStopRecording}
+                    onStop={stopRecording}
                   />
                   <AnimatePresence>
                     {isRecording && (
@@ -553,5 +612,5 @@ export default function Component() {
         </CardContent>
       </Card>
     </div>
-  );
+  )
 }

@@ -1,28 +1,31 @@
 import express from 'express';
+import natural from 'natural';
 import axios from 'axios';
 import authorize from '../../middleware/authorize.js';
 
 const router = express.Router();
+
+// Load the POS Tagger components
+const baseFolder = "node_modules/natural/lib/natural/brill_pos_tagger";
+const rulesFilename = `${baseFolder}/data/English/tr_from_posjs.txt`;
+const lexiconFilename = `${baseFolder}/data/English/lexicon_from_posjs.json`;
+
+const lexicon = new natural.Lexicon(lexiconFilename, 'NN'); // 'NN' is the default category for unknown words
+const rules = new natural.RuleSet(rulesFilename);
+const tagger = new natural.BrillPOSTagger(lexicon, rules);
 const BASE_URL = process.env.BASE_URL || `http://localhost:${process.env.ALLOCATED_PORT}`;
 
-// Simplified tokenization function
+// Function to tokenize text
 const tokenizeText = (text) => {
-    return text
-        .toLowerCase() // Convert to lowercase
-        .replace(/[^\w\s]/g, '') // Remove punctuation
-        .split(/\s+/); // Split by spaces (whitespace)
+    const tokenizer = new natural.WordTokenizer();
+    return tokenizer.tokenize(text);
 };
 
-// Function to classify words as content or function words (without POS tagging)
+// Function to determine if a word is a content word
 const isContentWord = (word) => {
-    const contentWords = [
-        'NN', 'NNS', 'NNP', 'NNPS',  // Nouns
-        'VB', 'VBD', 'VBG', 'VBN', 'VBP', 'VBZ',  // Verbs
-        'JJ', 'JJR', 'JJS',  // Adjectives
-        'RB', 'RBR', 'RBS'   // Adverbs
-    ];
-    // You can add rules or use a basic approximation (e.g., length-based or common function word lists)
-    return word.length > 3;  // Simplified assumption: content words tend to be longer than 3 characters
+    const tags = tagger.tag([word]).taggedWords;
+    const contentTags = ['NN', 'VB', 'JJ', 'RB']; // Nouns, Verbs, Adjectives, Adverbs
+    return tags.some(taggedWord => contentTags.includes(taggedWord.tag));
 };
 
 // Function to calculate Lexical Density

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Headphones, Play } from 'lucide-react';
@@ -6,20 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { motion } from "framer-motion";
+
 const BASE_URL = import.meta.env.VITE_BASE_URL || `http://localhost:${import.meta.env.VITE_ALLOCATED_PORT}`;
-
-
-
-const FeatureCard = ({ title, description }) => (
-  <motion.div 
-    className="bg-card rounded-lg p-4 shadow-md"
-    whileHover={{ scale: 1.05 }}
-    transition={{ type: "spring", stiffness: 300 }}
-  >
-    <h3 className="font-semibold text-card-foreground">{title}</h3>
-    <p className="text-sm text-muted-foreground">{description}</p>
-  </motion.div>
-);
 
 const fadeInUp = {
   initial: { opacity: 0, y: 20 },
@@ -66,36 +53,6 @@ export default function Component() {
           transition={{ duration: 0.8 }}
         >
           <Headphones className="mx-auto h-16 w-16 text-primary" />
-          <h1 className="mt-6 text-4xl font-bold text-foreground">Listening Practice</h1>
-          <p className="mt-2 text-xl text-muted-foreground">
-            Enhance your listening skills with our test materials
-          </p>
-        </motion.div>
-
-        <motion.div {...fadeInUp}>
-          <Card>
-            <CardHeader>
-              <CardTitle>IELTS Listening Sections</CardTitle>
-            </CardHeader>
-            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FeatureCard 
-                title="Part 1: Social Needs" 
-                description="Everyday conversations and specific information"
-              />
-              <FeatureCard 
-                title="Part 2: Social Context" 
-                description="Spoken descriptions about everyday situations"
-              />
-              <FeatureCard 
-                title="Part 3: Educational Context" 
-                description="Discussions related to educational settings"
-              />
-              <FeatureCard 
-                title="Part 4: Academic Subject" 
-                description="Academic lectures or presentations"
-              />
-            </CardContent>
-          </Card>
         </motion.div>
 
         <motion.div {...fadeInUp}>

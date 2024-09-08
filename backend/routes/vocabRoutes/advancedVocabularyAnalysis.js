@@ -1,11 +1,13 @@
-
 import express from 'express';
+import natural from 'natural';
 import axios from 'axios';
 import authorize from '../../middleware/authorize.js';
 
-const router = express.Router();
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 const BASE_URL = process.env.BASE_URL || `http://localhost:${process.env.ALLOCATED_PORT}`;
+
+const router = express.Router();
+const wordNet = new natural.WordNet();
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
 const advancedVocabulary = [
     "advantage", "benefit", "merit", "positive side", "upside", "boon", "pros",
@@ -110,12 +112,6 @@ const advancedVocabulary = [
     "meet the need of", "satisfy the requirement of", "cater for the demand of"
 ];
 
-// Tokenize text by converting it to lowercase, removing punctuation, and splitting by whitespace
-const tokenizeText = (text) => {
-    return text.toLowerCase().replace(/[^\w\s]/g, '').split(/\s+/);
-};
-
-// Fetch essays from the backend
 const fetchEssays = async (token) => {
     try {
         const response = await axios.get(`${BASE_URL}/getEssays/getEssays`, {
@@ -128,21 +124,18 @@ const fetchEssays = async (token) => {
     }
 };
 
-// Fetch word definition using an alternative dictionary API
-const fetchDefinitionFromDictionary = async (word) => {
-    try {
-        const response = await axios.get(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`);
-        if (response.data.length > 0 && response.data[0].meanings.length > 0) {
-            return response.data[0].meanings[0].definitions[0].definition;
-        }
-        return 'Definition not found';
-    } catch (error) {
-        console.error(`Error fetching definition for ${word}:`, error.message);
-        return 'Definition not found';
-    }
+const fetchDefinitionFromWordNet = async (word) => {
+    return new Promise((resolve, reject) => {
+        wordNet.lookup(word, (results) => {
+            if (results && results.length > 0) {
+                resolve(results[0].gloss);
+            } else {
+                resolve('Definition not found');
+            }
+        });
+    });
 };
 
-// Generate example usage of the word using OpenAI API
 const generateSampleUsageFromOpenAI = async (word, definition) => {
     const prompt = `Create a meaningful sentence using the word "${word}" based on the definition: "${definition}".`;
 
@@ -163,6 +156,7 @@ const generateSampleUsageFromOpenAI = async (word, definition) => {
                 },
             }
         );
+
         return response.data.choices[0].message.content.trim();
     } catch (error) {
         console.error(`Error generating sentence for ${word} using OpenAI:`, error.message);
@@ -170,9 +164,9 @@ const generateSampleUsageFromOpenAI = async (word, definition) => {
     }
 };
 
-// Analyze the essays for advanced vocabulary usage
 const analyzeAdvancedVocabulary = async (essays) => {
-    const tokens = tokenizeText(essays.join(' '));
+    const tokenizer = new natural.WordTokenizer();
+    const tokens = tokenizer.tokenize(essays.join(' ').toLowerCase());
 
     let advancedWordsUsed = {};
 
@@ -181,7 +175,7 @@ const analyzeAdvancedVocabulary = async (essays) => {
             if (advancedWordsUsed[word]) {
                 advancedWordsUsed[word].count += 1;
             } else {
-                const definition = await fetchDefinitionFromDictionary(word);
+                const definition = await fetchDefinitionFromWordNet(word);
                 advancedWordsUsed[word] = { 
                     count: 1, 
                     definition 
@@ -193,7 +187,6 @@ const analyzeAdvancedVocabulary = async (essays) => {
     return advancedWordsUsed;
 };
 
-// Fetch random advanced words and generate usage examples
 const getRandomAdvancedWordsWithUsage = async (usedWords) => {
     const unusedWords = advancedVocabulary.filter(word => !usedWords.includes(word));
     const randomWords = [];
@@ -201,7 +194,7 @@ const getRandomAdvancedWordsWithUsage = async (usedWords) => {
     while (randomWords.length < 10 && unusedWords.length > 0) {
         const randomIndex = Math.floor(Math.random() * unusedWords.length);
         const word = unusedWords.splice(randomIndex, 1)[0];
-        const definition = await fetchDefinitionFromDictionary(word);
+        const definition = await fetchDefinitionFromWordNet(word);
         const usage = await generateSampleUsageFromOpenAI(word, definition);
         randomWords.push({
             word: word,
@@ -213,7 +206,6 @@ const getRandomAdvancedWordsWithUsage = async (usedWords) => {
     return randomWords;
 };
 
-// Route handler for advanced vocabulary analysis
 router.get('/advancedVocabulary', authorize, async (req, res) => {
     const token = req.header('Authorization')?.replace('Bearer ', '');
 

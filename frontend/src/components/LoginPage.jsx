@@ -8,8 +8,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { useToast } from "@/components/ui/use-toast";
 import { LogIn, Loader2 } from 'lucide-react';
 import { useAuth } from '../context/authContext';
-const BASE_URL = import.meta.env.VITE_BASE_URL || `http://localhost:${import.meta.env.VITE_ALLOCATED_PORT}`;
 
+const BASE_URL = import.meta.env.VITE_BASE_URL || `http://localhost:${import.meta.env.VITE_ALLOCATED_PORT}`;
 
 const FloatingObject = ({ delay }) => {
   const props = useSpring({
@@ -109,7 +109,7 @@ export default function LoginPage() {
       }
     } catch (error) {
       toast({
-        description: "An error occurred during login.",
+        description: "An error occurred during login. This is most likely a server error.",
         variant: "destructive",
         duration: 3000,
       });
@@ -163,10 +163,10 @@ export default function LoginPage() {
                   onChange={(e) => setPassword(e.target.value)}
                 />
               </div>
-              <div>
+              <div className="flex items-center justify-between">
                 <Button
                   type="submit"
-                  className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                  className="w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                   disabled={isLoading}
                 >
                   {isLoading ? (
@@ -177,9 +177,14 @@ export default function LoginPage() {
                 </Button>
               </div>
             </form>
-            <div className="mt-6 text-center">
-              <Link to="/RegisterPage" className="text-sm text-indigo-600 hover:text-indigo-500">
-                Don't have an account? Register here
+            <div className="mt-6 flex justify-between items-center">
+              <Link to="/PasswordReset" className="text-sm font-medium text-indigo-600 hover:text-indigo-500">
+                Forgot password?
+              </Link>
+              <Link to="/RegisterPage">
+                <Button variant="outline" className="text-sm">
+                  Get Started
+                </Button>
               </Link>
             </div>
           </div>

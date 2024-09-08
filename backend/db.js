@@ -10,8 +10,10 @@ const createPool = () => {
   const isProduction = process.env.NODE_ENV === 'production';
 
   return new Pool({
-    connectionString: process.env.DATABASE_URL,
-    ssl: { rejectUnauthorized: false } // Enable SSL only in production
+    connectionString: isProduction 
+      ? process.env.DATABASE_URL 
+      : 'postgresql://localhost:5432/projectdb', // Local PostgreSQL server
+    ssl: isProduction ? { rejectUnauthorized: false } : false // Enable SSL only in production
   });
 };
 

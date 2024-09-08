@@ -1,6 +1,6 @@
 import express from "express";
 const router = express.Router();
-import bcrypt from "bcryptjs"; // Updated to bcryptjs
+import bcrypt from "bcryptjs";
 import pool from "../../db.js";
 import validInfo from "../../middleware/validInfo.js";
 import jwtGenerator from "../../utils/jwtGenerator.js";
@@ -15,7 +15,7 @@ function generateRefreshToken(userId) {
 }
 
 router.post("/register", validInfo, async (req, res) => {
-  const { email, name, password } = req.body;
+  const { email, name, password, dateOfBirth } = req.body;
 
   try {
     const user = await pool.query("SELECT * FROM users WHERE user_email = $1", [
@@ -23,15 +23,15 @@ router.post("/register", validInfo, async (req, res) => {
     ]);
 
     if (user.rows.length > 0) {
-      return res.status(401).json("User already exist!");
+      return res.status(401).json("User already exists!");
     }
 
     const salt = await bcrypt.genSalt(10);
     const bcryptPassword = await bcrypt.hash(password, salt);
 
     let newUser = await pool.query(
-      "INSERT INTO users (user_name, user_email, user_password) VALUES ($1, $2, $3) RETURNING *",
-      [name, email, bcryptPassword]
+      "INSERT INTO users (user_name, user_email, user_password, date_of_birth) VALUES ($1, $2, $3, $4) RETURNING *",
+      [name, email, bcryptPassword, dateOfBirth]
     );
 
     const jwtToken = jwtGenerator(newUser.rows[0].user_id);
@@ -85,9 +85,62 @@ router.post("/verify", (req, res) => {
       console.error('Token verification failed:', err.message);
       return res.status(403).json({ error: 'Token is not valid' });
     }
-    console.log('Decoded token:', decoded); // Log the decoded payload
+    console.log('Decoded token:', decoded);
     res.json({ valid: true });
   });
+});
+
+// Password Reset
+
+router.post("/resetPasswordRequest", async (req, res) => {
+  const { email, dateOfBirth } = req.body;
+
+  try {
+    const user = await pool.query(
+      "SELECT * FROM users WHERE user_email = $1 AND date_of_birth = $2",
+      [email, dateOfBirth]
+    );
+
+    if (user.rows.length === 0) {
+      return res.status(400).json("User not found or information doesn't match");
+    }
+
+    const resetToken = jwt.sign(
+      { userId: user.rows[0].user_id },
+      process.env.RESET_TOKEN_SECRET,
+      { expiresIn: '1h' }
+    );
+
+    res.json({ message: "Password reset requested", resetToken });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send("Server error");
+  }
+});
+
+router.post("/resetPassword", async (req, res) => {
+  const { resetToken, newPassword } = req.body;
+
+  try {
+    const decoded = jwt.verify(resetToken, process.env.RESET_TOKEN_SECRET);
+    const userId = decoded.userId;
+
+    const salt = await bcrypt.genSalt(10);
+    const bcryptPassword = await bcrypt.hash(newPassword, salt);
+
+    await pool.query(
+      "UPDATE users SET user_password = $1 WHERE user_id = $2",
+      [bcryptPassword, userId]
+    );
+
+    res.json({ message: "Password has been reset successfully" });
+  } catch (err) {
+    console.error(err.message);
+    if (err instanceof jwt.JsonWebTokenError) {
+      return res.status(400).json("Invalid or expired reset token");
+    }
+    res.status(500).send("Server error");
+  }
 });
 
 export default router;

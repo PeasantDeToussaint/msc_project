@@ -6,11 +6,15 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Toaster } from "@/components/ui/toaster";
 import { useToast } from "@/components/ui/use-toast";
-import { UserPlus, Loader2 } from 'lucide-react';
+import { UserPlus, Loader2, Info } from 'lucide-react';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 const BASE_URL = import.meta.env.VITE_BASE_URL || `http://localhost:${import.meta.env.VITE_ALLOCATED_PORT}`;
-
-
 
 const FloatingObject = ({ delay }) => {
   const props = useSpring({
@@ -66,7 +70,8 @@ export default function RegisterPage() {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
-    password: ''
+    password: '',
+    dateOfBirth: ''
   });
   const [isLoading, setIsLoading] = useState(false);
 
@@ -100,11 +105,11 @@ export default function RegisterPage() {
         const { token } = await response.json();
         localStorage.setItem('token', token);
         toast({
-          description: "Registration successful! Redirecting to home page...",
+          description: "You're signed up!Redirecting to log in page...",
           duration: 3000,
         });
         setTimeout(() => {
-          navigate("/Homepage");
+          navigate("/LoginPage");
         }, 2000);
       } else {
         toast({
@@ -133,8 +138,7 @@ export default function RegisterPage() {
           <div className="px-8 py-12">
             <div className="text-center mb-8">
               <UserPlus className="mx-auto h-12 w-12 text-indigo-600" />
-              <h2 className="mt-6 text-3xl font-extrabold text-gray-900">Register for Yasiman</h2>
-              <p className="mt-2 text-sm text-gray-600">Create your account</p>
+              <h2 className="mt-6 text-3xl font-extrabold text-gray-900">Sign Up</h2>
             </div>
             <form className="space-y-6" onSubmit={handleSubmit}>
               <div>
@@ -148,6 +152,7 @@ export default function RegisterPage() {
                   autoComplete="name"
                   required
                   className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                  placeholder="Enter your preferred user name"
                   value={formData.name}
                   onChange={handleChange}
                 />
@@ -163,6 +168,7 @@ export default function RegisterPage() {
                   autoComplete="email"
                   required
                   className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                  placeholder="Enter your email address"
                   value={formData.email}
                   onChange={handleChange}
                 />
@@ -178,7 +184,34 @@ export default function RegisterPage() {
                   autoComplete="new-password"
                   required
                   className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                  placeholder="Create a strong password"
                   value={formData.password}
+                  onChange={handleChange}
+                />
+              </div>
+              <div>
+                <div className="flex items-center space-x-2">
+                  <Label htmlFor="dateOfBirth" className="block text-sm font-medium text-gray-700">
+                    Date of Birth
+                  </Label>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Info className="h-4 w-4 text-gray-400" />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Just in case you forgot your password!</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
+                <Input
+                  id="dateOfBirth"
+                  name="dateOfBirth"
+                  type="date"
+                  required
+                  className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                  value={formData.dateOfBirth}
                   onChange={handleChange}
                 />
               </div>
@@ -191,7 +224,7 @@ export default function RegisterPage() {
                   {isLoading ? (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   ) : (
-                    "Register"
+                    "Sign Up"
                   )}
                 </Button>
               </div>

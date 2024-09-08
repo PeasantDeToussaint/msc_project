@@ -20,12 +20,11 @@ const fetchVocabularyData = async (section) => {
     case 'rare':
       const rareResponse = await axios.get(`${BASE_URL}/rareWords/rareWords`, { headers });
       return { rareWords: rareResponse.data.rareWords || [] };
-    case 'lexicalDensity':
     case 'overview':
       const [lexicalResponse, misspelledRes, advancedResponse] = await Promise.all([
-        axios.get(`${BASE_URL}/lexicalDensity`, { headers }),
-        axios.get(`${BASE_URL}/misSpellings`, { headers }),
-        axios.get(`${BASE_URL}/advancedVocabulary`, { headers }),
+        axios.get(`${BASE_URL}/lexicalDensity/lexicalDensity`, { headers }),
+        axios.get(`${BASE_URL}/misSpellings/misSpellings`, { headers }),
+        axios.get(`${BASE_URL}/advancedVocabulary/advancedVocabulary`, { headers }),
       ]);
       return {
         lexicalDensity: parseFloat(lexicalResponse.data.lexicalDensity) || 0,
@@ -38,7 +37,7 @@ const fetchVocabularyData = async (section) => {
         advancedWordsMessage: advancedResponse.data.message || '',
       };
     case 'advanced':
-      const advancedRes = await axios.get(`${BASE_URL}/advancedVocabulary`, { headers });
+      const advancedRes = await axios.get(`${BASE_URL}/advancedVocabulary/advancedVocabulary`, { headers });
       return {
         advancedWordsUsed: advancedRes.data.advancedWordsUsed || {},
         advancedWordsSuggestions: advancedRes.data.suggestions || [],
