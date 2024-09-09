@@ -202,10 +202,6 @@ function SectionContent({ section, data }) {
                   <InfoTooltip content="Words that carry meaning, such as nouns, verbs, adjectives, and adverbs." />
                 </li>
                 <li>Misspelled Words: {data.misspelledWords?.length || 0}</li>
-                <li>
-                  Advanced Words: {Object.keys(data.advancedWordsUsed || {}).length}
-                  <InfoTooltip content="Words that are considered sophisticated or academic." />
-                </li>
               </ul>
             </CardContent>
           </Card>

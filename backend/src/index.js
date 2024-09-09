@@ -29,6 +29,7 @@ import misSpellings from '../routes/vocabRoutes/misSpellings.js';
 import getEssays from '../routes/adminRoutes/getEssays.js';
 import listeningQuestions from '../routes/listeningRoutes/listeningQuestions.js';
 import readingQuestions from '../routes/readingRoutes/readingQuestions.js';
+import wordList from '../routes/vocabRoutes/wordList.js';
 
 const app = express();
 
@@ -82,6 +83,7 @@ app.use('/repeatedWords', repeatedWords);
 app.use('/readingQuestions', readingQuestions);
 app.use('/getEssays', getEssays);
 app.use('/listeningQuestions', listeningQuestions);
+app.use('/wordList', wordList);
 
 // Serve frontend's index.html for all other routes in production
 app.get('*', (req, res) => {

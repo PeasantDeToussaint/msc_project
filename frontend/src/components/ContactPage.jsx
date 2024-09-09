@@ -152,11 +152,11 @@ export default function ContactPage() {
                 <h2 className="text-2xl font-bold mb-6 text-indigo-700">Frequently Asked Questions</h2>
                 <Accordion type="single" collapsible className="w-full">
                   {[
-                    { question: "How does the grading system work?", answer: "Our AI grading system uses advanced natural language processing (NLP) algorithms to evaluate your responses. It analyzes your grammar, vocabulary, coherence, and pronunciation (for speaking) to provide an accurate and detailed score similar to human examiners." },
-                    { question: "Can the AI predict my IELTS score?", answer: "Yes, our AI can predict your IELTS score based on your performance in practice tests. It uses patterns and data from thousands of previous test-takers to provide a reliable estimate of your potential IELTS score." },
+                    { question: "How does the grading system work?", answer: "Grading system is based on prompt-engineered GPT-4o model." },
+                    { question: "Can the AI predict my IELTS score?", answer: "The model can only provide a rough estimate of your IELTS score." },
                     { question: "How can I improve my writing skills?", answer: "We provide instant feedback on your writing tasks, highlighting areas of improvement such as grammar errors, vocabulary usage, coherence, and task response. It also offers suggestions for better sentence structure and word choice to help you improve your writing skills." },
-                    { question: "Can the AI help with my speaking practice?", answer: "Yes, our AI offers speaking practice sessions where it evaluates your pronunciation, fluency, and coherence. It provides immediate feedback and suggestions to help you improve your speaking skills. You can also practice common speaking topics and questions to prepare for the IELTS Speaking test." },
-                    { question: "Is the AI feedback accurate?", answer: "Our AI feedback is highly accurate, as it is trained on a vast dataset of IELTS responses and scores. However, it is always recommended to combine AI feedback with human feedback for the best results, especially for subjective areas like writing and speaking." }
+                    { question: "Can the AI help with my speaking practice?", answer: "Yes, the model can provide feedback on your transcriptions." },
+                    { question: "Is the AI feedback accurate?", answer: "Accuracy is not guaranteed, but it can be a good reference." }
                   ].map((item, index) => (
                     <AccordionItem value={`item-${index + 1}`} key={index}>
                       <AccordionTrigger className="text-left">

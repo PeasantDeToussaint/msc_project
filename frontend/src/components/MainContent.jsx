@@ -23,8 +23,10 @@ import ListeningPractice from '../components/ListeningPracticeComponents/Listeni
 import ReadingPracticeIntro from '../components/ReadingPracticeComponents/ReadingPracticeIntro';
 import ReadingPractice from '../components/ReadingPracticeComponents/ReadingPractice';
 import VocabularyPracticeIntro from '../components/UserPageComponents/VocabularyPracticeIntro.jsx';
-import VocabularyPractice from '../components/UserPageComponents/VocabularyPractice';
 import PasswordReset from '../components/PasswordReset';
+import FindRealWord from '../components/UserPageComponents/FindRealWord';
+import ListenAndWrite from '../components/UserPageComponents/ListenAndWrite';
+import DefinitionMatching from '../components/UserPageComponents/DefinitionMatching';
 
 function MainContent() {
   const { isAuthenticated } = useAuth();
@@ -59,7 +61,9 @@ function MainContent() {
           <Route path="/ReadingPractice" element={isAuthenticated ? <ReadingPractice /> : <Navigate replace to="/LoginPage"/>} />
           <Route path="/ListeningPractice/:testId" element={isAuthenticated ? <ListeningPractice /> : <Navigate replace to="/LoginPage"/>}/>
           <Route path="/VocabularyPracticeIntro" element={isAuthenticated ? <VocabularyPracticeIntro /> : <Navigate replace to="/LoginPage"/>}/>
-          <Route path="/VocabularyPractice" element={isAuthenticated ? <VocabularyPractice /> : <Navigate replace to="/LoginPage"/>}/>
+          <Route path="/FindRealWord" element={isAuthenticated ? <FindRealWord/> : <Navigate replace to="/LoginPage"/>}/>
+          <Route path="/ListenAndWrite" element={isAuthenticated ? <ListenAndWrite/> : <Navigate replace to="/LoginPage"/>}/>
+          <Route path="/DefinitionMatching" element={isAuthenticated ? <DefinitionMatching/> : <Navigate replace to="/LoginPage"/>}/>
         </Routes>
       </div>
     </div>

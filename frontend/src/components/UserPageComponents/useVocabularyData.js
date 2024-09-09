@@ -24,7 +24,6 @@ const fetchVocabularyData = async (section) => {
       const [lexicalResponse, misspelledRes, advancedResponse] = await Promise.all([
         axios.get(`${BASE_URL}/lexicalDensity/lexicalDensity`, { headers }),
         axios.get(`${BASE_URL}/misSpellings/misSpellings`, { headers }),
-        axios.get(`${BASE_URL}/advancedVocabulary/advancedVocabulary`, { headers }),
       ]);
       return {
         lexicalDensity: parseFloat(lexicalResponse.data.lexicalDensity) || 0,
@@ -32,9 +31,6 @@ const fetchVocabularyData = async (section) => {
         uniqueWords: lexicalResponse.data.uniqueWords || 0,
         contentWords: lexicalResponse.data.contentWords || 0,
         misspelledWords: misspelledRes.data.misspelledWords || [],
-        advancedWordsUsed: advancedResponse.data.advancedWordsUsed || {},
-        advancedWordsSuggestions: advancedResponse.data.suggestions || [],
-        advancedWordsMessage: advancedResponse.data.message || '',
       };
     case 'advanced':
       const advancedRes = await axios.get(`${BASE_URL}/advancedVocabulary/advancedVocabulary`, { headers });

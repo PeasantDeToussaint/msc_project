@@ -7,10 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Calendar } from "@/components/ui/calendar";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Slider } from "@/components/ui/slider";
-import { Switch } from "@/components/ui/switch";
-import { Toast } from "@/components/ui/toast";
-import { CalendarIcon, Bell, BellOff } from 'lucide-react';
+import { CalendarIcon } from 'lucide-react';
 import { format, addDays, differenceInDays, isBefore } from 'date-fns';
 
 const AnimatedCard = animated(Card);
@@ -32,14 +29,6 @@ export default function ScheduleCard({ cardAnimation }) {
   });
   const [daysUntilTarget, setDaysUntilTarget] = useState(null);
   const [ieltsTestDates, setIeltsTestDates] = useState([]);
-  const [reminderDays, setReminderDays] = useState(() => {
-    return parseInt(localStorage.getItem('ieltsReminderDays') || '30', 10);
-  });
-  const [remindersEnabled, setRemindersEnabled] = useState(() => {
-    return localStorage.getItem('ieltsRemindersEnabled') === 'true';
-  });
-  const [showToast, setShowToast] = useState(false);
-  const [toastMessage, setToastMessage] = useState('');
 
   useEffect(() => {
     const items = spacedRepetitionItems.filter(item => 
@@ -55,23 +44,8 @@ export default function ScheduleCard({ cardAnimation }) {
       setDaysUntilTarget(diffDays);
 
       localStorage.setItem('ieltsTestDate', targetDate.toISOString());
-
-      if (remindersEnabled) {
-        const checkReminder = () => {
-          const now = new Date();
-          const daysLeft = differenceInDays(targetDate, now);
-          if (daysLeft <= reminderDays && daysLeft > 0) {
-            showNotification(`Your IELTS test is in ${daysLeft} days!`);
-          }
-        };
-
-        checkReminder();
-        const intervalId = setInterval(checkReminder, 1000 * 60 * 60); // Check every hour
-
-        return () => clearInterval(intervalId);
-      }
     }
-  }, [targetDate, remindersEnabled, reminderDays]);
+  }, [targetDate]);
 
   useEffect(() => {
     const fetchIeltsTestDates = async () => {
@@ -136,29 +110,6 @@ export default function ScheduleCard({ cardAnimation }) {
     return 'bg-red-500';
   };
 
-  const handleReminderDaysChange = (value) => {
-    const days = value[0];
-    setReminderDays(days);
-    localStorage.setItem('ieltsReminderDays', days.toString());
-  };
-
-  const handleRemindersToggle = (checked) => {
-    setRemindersEnabled(checked);
-    localStorage.setItem('ieltsRemindersEnabled', checked.toString());
-  };
-
-  const showNotification = (message) => {
-    if ('Notification' in window) {
-      Notification.requestPermission().then(permission => {
-        if (permission === 'granted') {
-          new Notification('IELTS Exam Reminder', { body: message });
-        }
-      });
-    }
-    setToastMessage(message);
-    setShowToast(true);
-  };
-
   return (
     <AnimatedCard style={cardAnimation}>
       <CardHeader>
@@ -192,27 +143,6 @@ export default function ScheduleCard({ cardAnimation }) {
               <p className="text-sm text-gray-500 mt-2">
                 Available test dates are highlighted. Dates are fetched from the official IELTS website.
               </p>
-              <div className="mt-4">
-                <h4 className="text-sm font-medium mb-2">Reminder Settings</h4>
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm">Enable Reminders</span>
-                  <Switch
-                    checked={remindersEnabled}
-                    onCheckedChange={handleRemindersToggle}
-                  />
-                </div>
-                <div className="flex items-center">
-                  <span className="text-sm mr-2">Remind me</span>
-                  <Slider
-                    value={[reminderDays]}
-                    onValueChange={handleReminderDaysChange}
-                    max={90}
-                    step={1}
-                    className="w-[200px]"
-                  />
-                  <span className="text-sm ml-2">{reminderDays} days before the exam</span>
-                </div>
-              </div>
             </DialogContent>
           </Dialog>
         </CardTitle>
@@ -233,21 +163,6 @@ export default function ScheduleCard({ cardAnimation }) {
                 <p className="text-sm text-gray-500 mt-2">
                   Exam Date: {format(targetDate, 'MMMM d, yyyy')}
                 </p>
-                {remindersEnabled && (
-                  <p className="text-sm text-gray-500">
-                    {reminderDays >= daysUntilTarget ? (
-                      <span className="flex items-center text-yellow-500">
-                        <Bell className="w-4 h-4 mr-1" />
-                        Reminder active!
-                      </span>
-                    ) : (
-                      <span className="flex items-center">
-                        <BellOff className="w-4 h-4 mr-1" />
-                        Reminder in {daysUntilTarget - reminderDays} days
-                      </span>
-                    )}
-                  </p>
-                )}
               </div>
             )}
           </div>
@@ -273,14 +188,6 @@ export default function ScheduleCard({ cardAnimation }) {
           </div>
         </div>
       </CardContent>
-      {showToast && (
-        <Toast
-          title="IELTS Exam Reminder"
-          description={toastMessage}
-          duration={5000}
-          onClose={() => setShowToast(false)}
-        />
-      )}
     </AnimatedCard>
   );
 }
