@@ -1,124 +1,317 @@
 'use client'
 
-import React, { useState } from 'react';
-import { useSpring, animated } from 'react-spring';
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import { Book, PlusCircle } from 'lucide-react';
+import React, { useState, useCallback, useMemo } from 'react'
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Loader2, HelpCircle, Book, PlusCircle, Search, ArrowUpDown, BarChart, Calendar, Star } from 'lucide-react'
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { motion, AnimatePresence } from 'framer-motion'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { useVocabularyData } from '../../components/UserPageComponents/useVocabularyData'
+import { Button } from "@/components/ui/button"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { Input } from "@/components/ui/input"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useFetchEssays } from './useFetchEssays'
 
-const AnimatedCard = animated(Card);
+const vocabularySections = [
+  { key: 'overview', label: 'Overview of the vocabulary used in your essays', icon: BarChart },
+  { key: 'misspelled', label: 'Misspelled words', icon: HelpCircle },
+  { key: 'repeated', label: 'Repeatedly used words in your essays', icon: ArrowUpDown },
+  { key: 'rare', label: 'Rare words used in your essay', icon: Book },
+  { key: 'advanced', label: 'Advanced words that can boost your grade', icon: PlusCircle },
+]
 
-export default function EssaysCard({ cardAnimation }) {
-  const [essayTitles, setEssayTitles] = useState([
-    { id: 1, title: "The impact of technology on education", date: "2023-08-15", content: "Technology has revolutionized..." },
-    { id: 2, title: "Climate change and its effects on agriculture", date: "2023-08-10", content: "Climate change poses significant challenges..." },
-    { id: 3, title: "The role of social media in modern society", date: "2023-08-05", content: "Social media has become an integral part..." },
-  ]);
-  const [newEssayTitle, setNewEssayTitle] = useState('');
-  const [newEssayContent, setNewEssayContent] = useState('');
-  const [selectedEssay, setSelectedEssay] = useState(null);
+function LoadingFallback() {
+  return (
+    <div className="flex justify-center items-center h-24">
+      <Loader2 className="h-8 w-8 animate-spin text-primary" />
+    </div>
+  )
+}
 
-  const handleAddNewEssay = () => {
-    if (newEssayTitle && newEssayContent) {
-      const newEssay = {
-        id: essayTitles.length + 1,
-        title: newEssayTitle,
-        date: new Date().toISOString().split('T')[0],
-        content: newEssayContent
-      };
-      setEssayTitles([...essayTitles, newEssay]);
-      setNewEssayTitle('');
-      setNewEssayContent('');
-    }
-  };
+function ErrorFallback({ error }) {
+  return (
+    <Alert variant="destructive">
+      <AlertTitle>Error</AlertTitle>
+      <AlertDescription>{error.message}</AlertDescription>
+    </Alert>
+  )
+}
 
-  const handleViewEssay = (essay) => {
-    setSelectedEssay(essay);
-  };
+function RadialProgress({ value }) {
+  const circumference = 2 * Math.PI * 30
+  const strokeDashoffset = circumference - (value / 100) * circumference
 
   return (
-    <AnimatedCard style={cardAnimation}>
+    <div className="relative w-20 h-20">
+      <svg className="w-full h-full" viewBox="0 0 100 100">
+        <circle
+          className="text-muted-foreground"
+          strokeWidth="10"
+          stroke="currentColor"
+          fill="transparent"
+          r="30"
+          cx="50"
+          cy="50"
+        />
+        <circle
+          className="text-primary"
+          strokeWidth="10"
+          strokeDasharray={circumference}
+          strokeDashoffset={strokeDashoffset}
+          strokeLinecap="round"
+          stroke="currentColor"
+          fill="transparent"
+          r="30"
+          cx="50"
+          cy="50"
+        />
+      </svg>
+      <div className="absolute inset-0 flex items-center justify-center">
+        <span className="text-lg font-bold">{value}%</span>
+      </div>
+    </div>
+  )
+}
+
+function SectionContent({ section, data }) {
+  if (!data) return null;
+
+  switch (section) {
+    case 'overview':
+      return (
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <h3 className="text-sm font-medium mb-1">Lexical Density</h3>
+            <RadialProgress value={data.lexicalDensity || 0} />
+          </div>
+          <div>
+            <ul className="space-y-1 text-sm">
+              <li>Total Words: {data.totalWords || 0}</li>
+              <li>Unique Words: {data.uniqueWords || 0}</li>
+              <li>Content Words: {data.contentWords || 0}</li>
+              <li>Misspelled: {data.misspelledWords?.length || 0}</li>
+            </ul>
+          </div>
+        </div>
+      )
+    case 'misspelled':
+      return (
+        <div className="text-sm">
+          {data.misspelledWords?.slice(0, 5).map((word, index) => (
+            <div key={index} className="mb-1">
+              <span className="text-destructive">{word.word}</span>
+              <span className="text-muted-foreground ml-2">→ {word.enhancedCorrection.split('\n')[0]}</span>
+            </div>
+          )) || 'No misspelled words found.'}
+        </div>
+      )
+    case 'repeated':
+      return (
+        <div className="text-sm">
+          {data.repeatedWords?.slice(0, 5).map((word, index) => (
+            <div key={index} className="mb-1">
+              <span className="font-medium">{word.word}</span>
+              <span className="text-muted-foreground ml-2">({word.occurrences} times)</span>
+            </div>
+          )) || 'No repeated words found.'}
+        </div>
+      )
+    case 'rare':
+      return (
+        <div className="flex flex-wrap gap-2">
+          {data.rareWords?.slice(0, 10).map((word, index) => (
+            <span key={index} className="text-sm bg-secondary text-secondary-foreground px-2 py-1 rounded">
+              {word}
+            </span>
+          )) || 'No rare words found.'}
+        </div>
+      )
+    case 'advanced':
+      return (
+        <div className="text-sm">
+          <h3 className="font-medium mb-2">Advanced Words Used:</h3>
+          <ul className="list-disc list-inside">
+            {Object.entries(data.advancedWordsUsed || {}).slice(0, 5).map(([word, details], index) => (
+              <li key={index}>{word} ({details.count} time{details.count > 1 ? 's' : ''})</li>
+            )) || 'No advanced words used.'}
+          </ul>
+        </div>
+      )
+    default:
+      return null
+  }
+}
+
+export default function VocabularyAndEssaysCard({ cardAnimation }) {
+  const [activeVocabularySection, setActiveVocabularySection] = useState('overview');
+  const { data, error, isLoading } = useVocabularyData(activeVocabularySection);
+  const { essays, fetchError, isFetching } = useFetchEssays();
+
+  const [selectedEssay, setSelectedEssay] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [sortBy, setSortBy] = useState('date');
+  const [sortOrder, setSortOrder] = useState('desc');
+
+  const handleViewEssay = useCallback((essay) => {
+    setSelectedEssay(essay);
+  }, []);
+
+  const filteredAndSortedEssays = useMemo(() => {
+    return essays
+      .filter(essay => {
+        const searchString = `${essay.title} ${essay.prompt}`.toLowerCase();
+        return searchString.includes(searchTerm.toLowerCase());
+      })
+      .sort((a, b) => {
+        if (sortBy === 'date') {
+          return sortOrder === 'asc' 
+            ? new Date(a.created_at) - new Date(b.created_at)
+            : new Date(b.created_at) - new Date(a.created_at);
+        } else if (sortBy === 'score') {
+          return sortOrder === 'asc'
+            ? a.overall_score - b.overall_score
+            : b.overall_score - a.overall_score;
+        }
+        return 0;
+      });
+  }, [essays, searchTerm, sortBy, sortOrder]);
+
+  const toggleSort = useCallback(() => {
+    if (sortBy === 'date') {
+      setSortBy('score');
+    } else {
+      setSortBy('date');
+    }
+    setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc');
+  }, [sortBy]);
+
+  return (
+    <Card className="w-full" style={cardAnimation}>
       <CardHeader>
-        <CardTitle className="text-xl font-semibold flex items-center justify-between">
-          <span className="flex items-center">
-            <Book className="w-5 h-5 mr-2" />
-            Past Essay Topics
-          </span>
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button size="sm">
-                <PlusCircle className="w-4 h-4 mr-2" />
-                Add New Essay
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Add New Essay</DialogTitle>
-              </DialogHeader>
-              <div className="grid gap-4 py-4">
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="name" className="text-right">
-                    Title
-                  </Label>
-                  <Input
-                    id="name"
-                    value={newEssayTitle}
-                    onChange={(e) => setNewEssayTitle(e.target.value)}
-                    className="col-span-3"
-                  />
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="content" className="text-right">
-                    Content
-                  </Label>
-                  <Textarea
-                    id="content"
-                    value={newEssayContent}
-                    onChange={(e) => setNewEssayContent(e.target.value)}
-                    className="col-span-3"
-                  />
-                </div>
-              </div>
-              <DialogFooter>
-                <Button type="submit" onClick={handleAddNewEssay}>Add Essay</Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-        </CardTitle>
+        <CardTitle className="text-xl font-semibold">Writing Insights</CardTitle>
       </CardHeader>
       <CardContent>
-        <ScrollArea className="h-[200px] w-full rounded-md border p-4">
-          {essayTitles.map((essay) => (
-            <div key={essay.id} className="flex justify-between items-center py-2 border-b last:border-b-0">
-              <span className="font-medium">{essay.title}</span>
-              <div className="flex items-center">
-                <span className="text-sm text-gray-500 mr-4">{essay.date}</span>
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button size="sm" variant="outline" onClick={() => handleViewEssay(essay)}>View</Button>
-                  </DialogTrigger>
-                  <DialogContent className="max-w-3xl">
-                    <DialogHeader>
-                      <DialogTitle>{selectedEssay?.title}</DialogTitle>
-                    </DialogHeader>
-                    <div className="mt-2">
-                      <p className="text-sm text-gray-500">Date: {selectedEssay?.date}</p>
-                      <ScrollArea className="h-[300px] w-full mt-4">
-                        <p className="text-sm">{selectedEssay?.content}</p>
-                      </ScrollArea>
+        <div className="space-y-8">
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold">Vocabulary Statistics</h3>
+            <Select value={activeVocabularySection} onValueChange={setActiveVocabularySection}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select statistic" />
+              </SelectTrigger>
+              <SelectContent>
+                {vocabularySections.map((section) => (
+                  <SelectItem key={section.key} value={section.key}>
+                    <div className="flex items-center">
+                      <section.icon className="mr-2 h-4 w-4" />
+                      {section.label}
                     </div>
-                  </DialogContent>
-                </Dialog>
-              </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Card className="p-4">
+              {isLoading || isFetching ? (
+                <LoadingFallback />
+              ) : error || fetchError ? (
+                <ErrorFallback error={error || fetchError} />
+              ) : (
+                <motion.div
+                  key={activeVocabularySection}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <SectionContent section={activeVocabularySection} data={data} />
+                </motion.div>
+              )}
+            </Card>
+          </div>
+
+          <div className="space-y-4">
+            <div className="flex justify-between items-center">
+              <h3 className="text-lg font-semibold">Past Essays</h3>
             </div>
-          ))}
-        </ScrollArea>
+
+            <div className="flex justify-between items-center">
+              <div className="relative w-64">
+                <Input
+                  type="text"
+                  placeholder="Search essays..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              </div>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={toggleSort}
+              >
+                {sortBy === 'date' ? <Calendar className="h-4 w-4 mr-2" /> : <Star className="h-4 w-4 mr-2" />}
+                Sort by {sortBy === 'date' ? 'Date' : 'Score'}
+                <ArrowUpDown className="h-4 w-4 ml-2" />
+              </Button>
+            </div>
+
+            <Card className="p-4">
+              <ScrollArea className="h-[300px] w-full">
+                <AnimatePresence>
+                  {filteredAndSortedEssays.map((essay) => (
+                    <motion.div
+                      key={essay.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -20 }}
+                      transition={{ duration: 0.2 }}
+                      className="flex justify-between items-center py-2 border-b last:border-b-0"
+                    >
+                      <div className="flex-grow">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="font-medium">{essay.title}</span>
+                          <span className="text-sm text-gray-500">{new Date(essay.created_at).toLocaleDateString()}</span>
+                        </div>
+                        <p className="text-sm text-gray-500 truncate">{essay.prompt}</p>
+                        <div className="flex items-center mt-1">
+                          <Star className="h-4 w-4 text-yellow-500 mr-1" />
+                          <span className="text-sm font-medium">{essay.overall_score}</span>
+                        </div>
+                      </div>
+                      <div className="ml-4">
+                        <Dialog>
+                          <DialogTrigger asChild>
+                            <Button size="sm" variant="outline" onClick={() => handleViewEssay(essay)}>View</Button>
+                          </DialogTrigger>
+                          <DialogContent className="max-w-3xl">
+                            <DialogHeader>
+                              <DialogTitle>{selectedEssay?.title}</DialogTitle>
+                            </DialogHeader>
+                            <div className="mt-2">
+                              <div className="flex justify-between items-center mb-2">
+                                <p className="text-sm text-gray-500">Date: {new Date(selectedEssay?.created_at).toLocaleDateString()}</p>
+                                <div className="flex items-center">
+                                  <Star className="h-4 w-4 text-yellow-500 mr-1" />
+                                  <span className="text-sm font-medium">{selectedEssay?.overall_score}</span>
+                                </div>
+                              </div>
+                              <p className="text-sm text-gray-700 mb-2">Prompt: {selectedEssay?.prompt}</p>
+                              <ScrollArea className="h-[300px] w-full mt-4">
+                                <p className="text-sm">{selectedEssay?.essay}</p>
+                              </ScrollArea>
+                            </div>
+                          </DialogContent>
+                        </Dialog>
+                      </div>
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+              </ScrollArea>
+            </Card>
+          </div>
+        </div>
       </CardContent>
-    </AnimatedCard>
+    </Card>
   );
 }
