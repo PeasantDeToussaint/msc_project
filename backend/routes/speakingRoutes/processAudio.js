@@ -35,6 +35,14 @@ router.post('/process-audio', upload.single('audio'), async (req, res) => {
     const wavFileInfoAsync = util.promisify(wavFileInfo.infoByFilename);
     const fileInfo = await wavFileInfoAsync(filePath);
 
+    // Log fileInfo for debugging
+    console.log('File Info:', fileInfo);
+
+    // Ensure fileInfo and its header properties are defined
+    if (!fileInfo || !fileInfo.header || !fileInfo.header.audio_format || !fileInfo.header.sample_rate) {
+      throw new Error('Invalid WAV file format.');
+    }
+
     // Example processing logic (adjust based on your needs)
     const audioBytes = fileBuffer.toString('base64');
     const audio = {
@@ -42,8 +50,8 @@ router.post('/process-audio', upload.single('audio'), async (req, res) => {
     };
 
     const config = {
-      encoding: fileInfo.format.encoding,  // Ensure correct encoding
-      sampleRateHertz: fileInfo.format.sample_rate,
+      encoding: 'LINEAR16',  // Assuming PCM format for WAV files
+      sampleRateHertz: fileInfo.header.sample_rate,
       languageCode: 'en-US',
     };
 

@@ -4,7 +4,6 @@ import React, { useState, useEffect } from 'react';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import { useSpring, animated, config } from 'react-spring';
 import ScheduleCard from './ScheduleCard';
-import MissionsCard from './MissionsCard';
 import EssaysCard from './EssayCard';
 
 const CARD_ORDER_KEY = 'ieltsAppCardOrder';
@@ -51,12 +50,6 @@ export default function Component() {
         return (
           <CardWrapper width="w-full" id="schedule" style={cardAnimation}>
             <ScheduleCard />
-          </CardWrapper>
-        );
-      case 'missions':
-        return (
-          <CardWrapper width="w-full" id="missions" style={cardAnimation}>
-            <MissionsCard />
           </CardWrapper>
         );
       case 'essays':

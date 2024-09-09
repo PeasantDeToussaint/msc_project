@@ -8,6 +8,9 @@ Please use the exact following structure to provide your feedback, no matter the
 
 Overall-Score: [score]
 \\new line
+Task-Response-Score: [score]
+Task-Response-Feedback: [detail feedback]
+\\new line
 Coherence-and-Cohesion-Score: [score]
 Coherence-and-Cohesion-Feedback: [detailed feedback]
 \\new line

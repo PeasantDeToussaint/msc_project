@@ -59,10 +59,11 @@ const topics = {
 function useAudioRecorder(timeLimitInSeconds, onRecordingStop) {
   const [isRecording, setIsRecording] = useState(false)
   const [timeLeft, setTimeLeft] = useState(timeLimitInSeconds)
-  const [audioBlobs, setAudioBlobs] = useState([])
   const [capturedStream, setCapturedStream] = useState(null)
 
   const startRecording = useCallback(async () => {
+    let audioBlobs = [] // Local variable to store audio blobs for the current recording session
+
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: {
@@ -70,7 +71,6 @@ function useAudioRecorder(timeLimitInSeconds, onRecordingStop) {
         }
       })
 
-      setAudioBlobs([])
       setCapturedStream(stream)
       setIsRecording(true)
       setTimeLeft(timeLimitInSeconds)
@@ -80,7 +80,7 @@ function useAudioRecorder(timeLimitInSeconds, onRecordingStop) {
       })
 
       recorder.addEventListener('dataavailable', event => {
-        setAudioBlobs(prevBlobs => [...prevBlobs, event.data])
+        audioBlobs.push(event.data)
       })
 
       recorder.addEventListener('stop', () => {
@@ -111,16 +111,14 @@ function useAudioRecorder(timeLimitInSeconds, onRecordingStop) {
       console.error('Error starting recording:', error)
       throw error
     }
-  }, [timeLimitInSeconds, audioBlobs, onRecordingStop])
+  }, [timeLimitInSeconds, onRecordingStop])
 
   const stopRecording = useCallback(() => {
     if (capturedStream) {
       capturedStream.getTracks().forEach(track => track.stop())
     }
     setIsRecording(false)
-    const audioBlob = new Blob(audioBlobs, { type: 'audio/webm' })
-    return audioBlob
-  }, [audioBlobs, capturedStream])
+  }, [capturedStream])
 
   return {
     isRecording,

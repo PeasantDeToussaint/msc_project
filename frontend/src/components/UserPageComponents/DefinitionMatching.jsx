@@ -1,3 +1,5 @@
+'use client'
+
 import React, { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Card, CardContent } from "@/components/ui/card"
@@ -9,26 +11,26 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { CheckCircle, XCircle, ArrowLeft, BookOpen } from 'lucide-react'
 import confetti from 'canvas-confetti'
 
-const BASE_URL = import.meta.env.VITE_BASE_URL || `http://localhost:${import.meta.env.ALLOCATED_PORT}`;
+const BASE_URL = import.meta.env.VITE_BASE_URL || `http://localhost:${import.meta.env.ALLOCATED_PORT}`
 
 const fetchVocabularyList = async (listId) => {
   try {
-    const response = await fetch(`${BASE_URL}/wordList/wordList/${listId}`);
+    const response = await fetch(`${BASE_URL}/wordList/wordList/${listId}`)
     if (!response.ok) {
-      throw new Error('Failed to fetch vocabulary list');
+      throw new Error('Failed to fetch vocabulary list')
     }
-    const data = await response.json();
+    const data = await response.json()
     return data.map((item, index) => ({
       id: index + 1,
       vocabulary: item.vocabulary,
       definition: item.definition,
       isReal: true
-    }));
+    }))
   } catch (error) {
-    console.error('Error fetching vocabulary list:', error);
-    return [];
+    console.error('Error fetching vocabulary list:', error)
+    return []
   }
-};
+}
 
 export default function Component() {
   const [selectedList, setSelectedList] = useState('')
@@ -201,8 +203,9 @@ export default function Component() {
                 className="space-y-8"
               >
                 <div className="flex justify-between items-center">
-                  <Button onClick={resetQuiz} variant="outline" size="icon">
-                    <ArrowLeft className="h-4 w-4" />
+                  <Button onClick={resetQuiz} variant="outline" size="sm" className="flex items-center">
+                    <ArrowLeft className="h-4 w-4 mr-2" />
+                    Return to List Selection
                   </Button>
                   <div className="text-xl font-bold">
                     Question {currentWordIndex + 1} of {currentWords.length}

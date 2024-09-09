@@ -2,7 +2,7 @@
 
 import React, { useState, useCallback, useMemo } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Loader2, HelpCircle, Book, PlusCircle, Search, ArrowUpDown, BarChart, Calendar, Star } from 'lucide-react'
+import { Loader2, HelpCircle, Book, PlusCircle, Search, ArrowUpDown, BarChart } from 'lucide-react'
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { motion, AnimatePresence } from 'framer-motion'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
@@ -151,7 +151,6 @@ export default function VocabularyAndEssaysCard({ cardAnimation }) {
 
   const [selectedEssay, setSelectedEssay] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [sortBy, setSortBy] = useState('date');
   const [sortOrder, setSortOrder] = useState('desc');
 
   const handleViewEssay = useCallback((essay) => {
@@ -161,31 +160,17 @@ export default function VocabularyAndEssaysCard({ cardAnimation }) {
   const filteredAndSortedEssays = useMemo(() => {
     return essays
       .filter(essay => {
-        const searchString = `${essay.title} ${essay.prompt}`.toLowerCase();
-        return searchString.includes(searchTerm.toLowerCase());
+        const title = essay?.title?.toLowerCase() || '';
+        return title.includes(searchTerm.toLowerCase());
       })
       .sort((a, b) => {
-        if (sortBy === 'date') {
-          return sortOrder === 'asc' 
-            ? new Date(a.created_at) - new Date(b.created_at)
-            : new Date(b.created_at) - new Date(a.created_at);
-        } else if (sortBy === 'score') {
-          return sortOrder === 'asc'
-            ? a.overall_score - b.overall_score
-            : b.overall_score - a.overall_score;
+        if (sortOrder === 'asc') {
+          return new Date(a.created_at) - new Date(b.created_at);
+        } else {
+          return new Date(b.created_at) - new Date(a.created_at);
         }
-        return 0;
       });
-  }, [essays, searchTerm, sortBy, sortOrder]);
-
-  const toggleSort = useCallback(() => {
-    if (sortBy === 'date') {
-      setSortBy('score');
-    } else {
-      setSortBy('date');
-    }
-    setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc');
-  }, [sortBy]);
+  }, [essays, searchTerm, sortOrder]);
 
   return (
     <Card className="w-full" style={cardAnimation}>
@@ -248,11 +233,10 @@ export default function VocabularyAndEssaysCard({ cardAnimation }) {
               <Button
                 size="sm"
                 variant="outline"
-                onClick={toggleSort}
+                onClick={() => setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc')}
               >
-                {sortBy === 'date' ? <Calendar className="h-4 w-4 mr-2" /> : <Star className="h-4 w-4 mr-2" />}
-                Sort by {sortBy === 'date' ? 'Date' : 'Score'}
-                <ArrowUpDown className="h-4 w-4 ml-2" />
+                <ArrowUpDown className="h-4 w-4 mr-2" />
+                Sort by Date
               </Button>
             </div>
 
@@ -260,51 +244,38 @@ export default function VocabularyAndEssaysCard({ cardAnimation }) {
               <ScrollArea className="h-[300px] w-full">
                 <AnimatePresence>
                   {filteredAndSortedEssays.map((essay) => (
-                    <motion.div
-                      key={essay.id}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -20 }}
-                      transition={{ duration: 0.2 }}
-                      className="flex justify-between items-center py-2 border-b last:border-b-0"
-                    >
-                      <div className="flex-grow">
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="font-medium">{essay.title}</span>
-                          <span className="text-sm text-gray-500">{new Date(essay.created_at).toLocaleDateString()}</span>
+                    <Dialog key={essay.id}>
+                      <DialogTrigger asChild>
+                        <motion.div
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -20 }}
+                          transition={{ duration: 0.2 }}
+                          className="flex justify-between items-center py-2 border-b last:border-b-0 cursor-pointer"
+                          onClick={() => handleViewEssay(essay)}
+                        >
+                          <div>
+                            <span className="font-medium">{essay.title}</span>
+                            <span className="text-sm text-gray-500 ml-2">{new Date(essay.created_at).toLocaleDateString()}</span>
+                            <p className="text-sm text-gray-500">Prompt: {essay.prompt}</p>
+                            <p className="text-sm text-gray-500">Score: {essay.overall_score}</p>
+                          </div>
+                        </motion.div>
+                      </DialogTrigger>
+                      <DialogContent className="max-w-3xl">
+                        <DialogHeader>
+                          <DialogTitle>{selectedEssay?.title}</DialogTitle>
+                        </DialogHeader>
+                        <div className="mt-2">
+                          <p className="text-sm text-gray-500">Date: {new Date(selectedEssay?.created_at).toLocaleDateString()}</p>
+                          <p className="text-sm text-gray-500">Prompt: {selectedEssay?.prompt}</p>
+                          <p className="text-sm text-gray-500">Score: {selectedEssay?.overall_score}</p>
+                          <ScrollArea className="h-[300px] w-full mt-4">
+                            <p className="text-sm">{selectedEssay?.essay}</p>
+                          </ScrollArea>
                         </div>
-                        <p className="text-sm text-gray-500 truncate">{essay.prompt}</p>
-                        <div className="flex items-center mt-1">
-                          <Star className="h-4 w-4 text-yellow-500 mr-1" />
-                          <span className="text-sm font-medium">{essay.overall_score}</span>
-                        </div>
-                      </div>
-                      <div className="ml-4">
-                        <Dialog>
-                          <DialogTrigger asChild>
-                            <Button size="sm" variant="outline" onClick={() => handleViewEssay(essay)}>View</Button>
-                          </DialogTrigger>
-                          <DialogContent className="max-w-3xl">
-                            <DialogHeader>
-                              <DialogTitle>{selectedEssay?.title}</DialogTitle>
-                            </DialogHeader>
-                            <div className="mt-2">
-                              <div className="flex justify-between items-center mb-2">
-                                <p className="text-sm text-gray-500">Date: {new Date(selectedEssay?.created_at).toLocaleDateString()}</p>
-                                <div className="flex items-center">
-                                  <Star className="h-4 w-4 text-yellow-500 mr-1" />
-                                  <span className="text-sm font-medium">{selectedEssay?.overall_score}</span>
-                                </div>
-                              </div>
-                              <p className="text-sm text-gray-700 mb-2">Prompt: {selectedEssay?.prompt}</p>
-                              <ScrollArea className="h-[300px] w-full mt-4">
-                                <p className="text-sm">{selectedEssay?.essay}</p>
-                              </ScrollArea>
-                            </div>
-                          </DialogContent>
-                        </Dialog>
-                      </div>
-                    </motion.div>
+                      </DialogContent>
+                    </Dialog>
                   ))}
                 </AnimatePresence>
               </ScrollArea>
